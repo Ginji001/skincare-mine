@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2f6db5">
+<meta name="theme-color" content="#f6f1ea">
+<meta name="description" content="化粧品の登録、曜日ごとの朝・夜ルーティン、成分の重なりチェックができる無料のスキンケア管理アプリ。データは端末内だけに保存。">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="スキンケア">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>スキンケア管理</title>
+<title>スキンケア・ノート</title>
 <style>
 :root{
   --sky:#eaf2fb; --paper:#ffffff; --ink:#13283f; --sub:#5a6b7e; --line:#cfdcec;
@@ -126,283 +126,109 @@ nav.tabs button[aria-current="page"]{color:var(--blue-deep);font-weight:700}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
 .toast.on{opacity:.95}
 .muted{color:var(--muted)}
-.explain{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0;white-space:normal}
-.explain.off{border-color:var(--blue)}
-.ex-h{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.explain p{margin:6px 0;font-size:14px;line-height:1.8}
-.explain a{color:var(--blue)}
-.ex-list{margin-top:8px}
-.ex-g{margin:10px 0}
-.ex-c{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px}
-.ex-i{font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
-.ex-i b{display:block}
-.ex-i span{color:var(--sub)}
-.disc{font-size:12px;color:var(--sub)}
-.offbox{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.ocrbox{border:1px dashed var(--blue);border-radius:12px;padding:10px 12px;margin:10px 0}
+.ocrbox .chips .chip{font-size:13px;text-align:left}
+.ocrbox textarea{font-size:13px}
+.ed{display:flex;gap:4px;flex:none}
+.ed button:disabled{opacity:.35}
+.ed button{border:1px solid var(--line);background:var(--bg);border-radius:8px;width:30px;height:30px;font-size:14px;color:var(--sub)}
+.warnbox{border-radius:12px;padding:8px 12px;margin:8px 0;font-size:13.5px}
+.warnbox.w{background:var(--warn-bg);color:var(--warn)}
+.warnbox.i{background:var(--tint);color:var(--blue-deep)}
+dialog{border:0;border-radius:18px;padding:16px;max-width:520px;width:calc(100% - 24px);background:var(--card);color:var(--text)}
+dialog::backdrop{background:rgba(10,25,45,.45)}
+.list-pick button{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;margin:6px 0}
+.disc{font-size:12px;color:var(--sub);margin-top:18px;line-height:1.6}
 .ocrbox{border:1px dashed var(--blue);border-radius:12px;padding:10px 12px;margin:10px 0}
 .ocrbox .chips .chip{font-size:13px;text-align:left}
 .ocrbox textarea{font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== beauty theme ===== */
+:root{
+  --serif:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho","YuMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+  --sky:#f6f1ea; --paper:#fffdf9; --ink:#2b2622; --sub:#7d7068; --line:#e7ddd2;
+  --blue:#a5645a; --blue-deep:#7a453e; --tint:#f2e6de; --warn:#9c5532; --warn-bg:#f8eadf; --muted:#bcafa4; --ok:#6f8a6a;
+  --gold:#c9a97c; --bg:var(--sky); --card:var(--paper); --text:var(--ink);
+}
+:root[data-mode="night"]{
+  --bg:#1d191b; --card:#28222a; --text:#f2e9e2; --sub:#bfb0a6; --line:#3c3339;
+  --tint:#3a2f33; --blue:#dcaaa0; --blue-deep:#f1d2c9; --warn:#efb48f; --warn-bg:#3a2c27; --muted:#86797a; --gold:#bfa07a;
+}
+body{letter-spacing:.02em}
+header.top h1{font-family:var(--serif);font-weight:500;font-size:14px;letter-spacing:.28em;color:var(--sub)}
+.dow{font-family:var(--serif);font-weight:500;letter-spacing:0;color:var(--blue-deep)}
+h2,h3,.progress h2{font-family:var(--serif);font-weight:600;letter-spacing:.06em}
+.chip[aria-pressed="true"],:root[data-mode="night"] .chip[aria-pressed="true"]{color:var(--bg)}
+.btn{border-radius:999px;padding:10px 18px;letter-spacing:.06em}
+.btn.primary,:root[data-mode="night"] .btn.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+:root[data-mode="night"] .btn.primary{background:var(--blue-deep);border-color:var(--blue-deep);color:var(--bg)}
+.btn.sm{border-radius:999px}
+ol.steps li,.card,details.prod{border-color:var(--line);box-shadow:0 1px 2px rgba(60,40,30,.04)}
+.bar{height:3px}
+.seg{background:var(--tint)}
+nav.tabs{background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+nav.tabs button[aria-current="page"]{color:var(--blue)}
+/* welcome */
+.welcome{position:relative;min-height:calc(100vh - 140px);display:flex;flex-direction:column;justify-content:center;padding:36px 6px 24px;overflow:hidden}
+.w-orb{position:absolute;right:-90px;top:-40px;width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fbe7df 0%,#f1cfc4 38%,#e9d8bf 70%,rgba(233,216,191,0) 72%);filter:blur(2px);opacity:.9;animation:wfloat 9s ease-in-out infinite;pointer-events:none}
+.w-orb::after{content:"";position:absolute;inset:-26px;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold) 55%,transparent)}
+.w-orb::before{content:"";position:absolute;inset:-60px;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold) 25%,transparent)}
+@keyframes wfloat{50%{transform:translateY(12px)}}
+.w-kicker{position:relative;font-family:var(--serif);font-size:12px;letter-spacing:.42em;color:var(--blue);margin:0 0 18px}
+.w-kicker::after{content:"";display:inline-block;width:40px;height:1px;background:var(--gold);vertical-align:middle;margin-left:12px}
+.w-title{position:relative;font-family:var(--serif);font-weight:500;font-size:clamp(30px,8.6vw,42px);line-height:1.45;letter-spacing:.08em;margin:0 0 18px;color:var(--text)}
+.w-title em{font-style:normal;color:var(--blue)}
+.w-lead{position:relative;font-size:14.5px;line-height:2;color:var(--sub);margin:0 0 28px;max-width:30em}
+.w-actions{position:relative;display:flex;gap:10px;flex-wrap:wrap}
+.w-actions .btn{padding:13px 26px;font-size:15px}
+.w-note{position:relative;font-size:12px;letter-spacing:.12em;color:var(--muted);margin:16px 0 0}
+.w-steps{position:relative;list-style:none;margin:40px 0 0;padding:0;border-top:1px solid var(--line)}
+.w-steps li{display:flex;gap:18px;align-items:baseline;padding:16px 2px;border-bottom:1px solid var(--line)}
+.w-num{font-family:var(--serif);font-size:13px;letter-spacing:.1em;color:var(--gold);flex:none;width:24px}
+.w-steps b{display:block;font-family:var(--serif);font-weight:600;font-size:16px;letter-spacing:.1em;margin-bottom:2px}
+.w-steps span:not(.w-num){font-size:13px;color:var(--sub)}
+nav.tabs[hidden]{display:none}
+.explain{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0;white-space:normal}
+.explain.off{border-color:color-mix(in srgb,var(--gold) 60%,var(--line))}
+.ex-h{font-family:var(--serif);font-weight:600;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.explain p{margin:6px 0;font-size:14px;line-height:1.85}
+.explain a{color:var(--blue)}
+.ex-list{margin-top:8px}
+.ex-g{margin:10px 0}
+.ex-c{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:4px}
+.ex-i{font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.ex-i b{display:block;font-weight:700}
+.ex-i span{color:var(--sub)}
+.offbox{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.linkbtn{all:unset;cursor:pointer}
+.linkbtn:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.w-orb{animation:none}}
 </style>
+
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<nav class="tabs" id="tabs" hidden><div>
+<nav class="tabs" id="tabs"><div>
   <button data-tab="today"><span class="ic">◐</span>今日</button>
-  <button data-tab="week"><span class="ic">▦</span>週間</button>
-  <button data-tab="jikka"><span class="ic">⌂</span>実家</button>
-  <button data-tab="dp"><span class="ic">✳</span>ダーマペン</button>
+  <button data-tab="week"><span class="ic">▦</span>ルーティン</button>
   <button data-tab="prod"><span class="ic">≡</span>製品</button>
+  <button data-tab="set"><span class="ic">⚙</span>設定</button>
 </div></nav>
+<dialog id="dlg"></dialog>
 <div class="toast" id="toast" role="status"></div>
 <input type="file" id="ocrfile" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-label="製品の写真">
-<input type="file" id="file" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-label="データファイル">
+<input type="file" id="file" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-label="バックアップファイル">
 <script>
 'use strict';
-const LS='skincare-mine-v1';
+const LS='skincare-mine-note-v1';const LS_OLD='skincare-mine-v1';
 const DK=['sun','mon','tue','wed','thu','fri','sat'];
 const DJ=['日','月','火','水','木','金','土'];
-const TAGJ={niacinamide:'ナイアシンアミド',fragrance:'香り成分',retinoid:'ビタミンA系',growth:'成長因子系',pdrn:'PDRN',vitc:'ビタミンC',scrub:'スクラブ',rx:'処方薬',acid:'酸（AHA/BHA/PHA）',bpo:'過酸化ベンゾイル'};
-const CATS=['洗顔','化粧水','美容液','マスク','乳液・クリーム','UV','処方薬','その他'];
-let S=load();
-let view={tab:'today',date:todayKey(),mode:defaultMode(),wday:DK[new Date().getDay()],jikka:'normal',showRemoved:false,settings:false,np:{name:'',cat:'美容液',ing:''},ocr:null};
-const timers={};
-
-function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s)return s}catch(e){}return{data:null,flags:{},slotPick:{},log:{},memo:{},dp:{dates:[],progress:null}}}
-function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){toast('保存できませんでした')}}
-function todayKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function parse(k){const[a,b,c]=k.split('-').map(Number);return new Date(a,b-1,c)}
-function addDays(k,n){const d=parse(k);d.setDate(d.getDate()+n);return todayKey(d)}
-function diffDays(a,b){return Math.round((parse(b)-parse(a))/864e5)}
-function defaultMode(){const h=new Date().getHours();return(h>=15||h<4)?'pm':'am'}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1800)}
-function fmtDate(k){const d=parse(k);return(d.getMonth()+1)+'月'+d.getDate()+'日'}
-const D=()=>S.data;
-const prod=id=>D().products[id];
-
-/* ---------- state logic ---------- */
-function activeFlags(date){
-  const out=new Set();
-  for(const f of D().flags){const v=S.flags[f.id];if(!v)continue;
-    if(f.scope==='day'){if(v===date)out.add(f.id)}else if(v<=date)out.add(f.id)}
-  return out;
-}
-function dpStatus(date){
-  const dates=(S.dp.dates||[]).filter(d=>d<=date).sort();
-  if(!dates.length)return{phase:'none'};
-  const last=dates[dates.length-1],day=diffDays(last,date),cfg=D().dermapen;
-  if(day<cfg.pauseDays)return{phase:'pause',day,last};
-  const pr=S.dp.progress&&S.dp.progress.for===last?S.dp.progress.cur:0;
-  if(pr>=cfg.stages.length)return{phase:'none',last};
-  return{phase:'recover',stage:pr,last,day};
-}
-function dpBlocked(pid,st){
-  const stages=D().dermapen.stages;
-  const idx=stages.findIndex(s=>s.products.includes(pid));
-  if(idx<0)return null;
-  if(st.phase==='pause')return'ダーマペン後 休止';
-  if(st.phase==='recover'&&idx>st.stage)return'復帰前（'+(idx+1)+'段階目で再開）';
-  return null;
-}
-function pickVariant(slotKey,slot,date,flags){
-  const chosen=(S.slotPick[date]||{})[slotKey];
-  let auto=slot.variants[0].id;
-  if(slot.auto){for(const[c,v]of slot.auto){if(c==='default'||flags.has(c)){auto=v;break}}}
-  const id=chosen||auto;
-  return{v:slot.variants.find(x=>x.id===id)||slot.variants[0],auto};
-}
-function resolve(steps,date,period,ctx={}){
-  const flags=activeFlags(date),dp=dpStatus(date),out=[],hidden=[];
-  const push=(st,i,slotNote)=>{
-    if(!st.p){out.push({key:period+i+':'+st.label,label:st.label,sub:st.note||'',tags:[],state:'normal',timer:st.timer});return}
-    const pr=prod(st.p);if(!pr)return;
-    if(pr.status==='removed')return;
-    if(pr.status==='paused'){hidden.push(pr.short);return}
-    const it={key:period+i+':'+st.p,p:st.p,label:pr.short,sub:[st.note,slotNote].filter(Boolean).join('／'),tags:[],state:st.optional?'optional':'normal'};
-    if(st.optional)it.tags.push(['任意',0]);
-    if(flags.has('irritated')&&pr.irritRank===1){
-      if(pr.replaceWhenSkipped){out.push({key:period+i+':rep',label:pr.replaceWhenSkipped,sub:pr.short+'は刺激週のため休み',tags:[],state:'normal'})}
-      return;
-    }
-    if(flags.has('irritated')&&pr.irritRank>=2){it.tags.push(['刺激週：減らす候補',1]);it.state='optional'}
-    if(st.optionalIf&&st.optionalIf.some(f=>flags.has(f))){it.tags.push([st.optNote||'今日は任意',1]);it.state='optional'}
-    const b=dpBlocked(st.p,dp);if(b){it.tags=[[b,1]];it.state='off'}
-    out.push(it);
-  };
-  steps.forEach((st,i)=>{
-    if(st.slot){
-      const slot=ctx.slots?.[st.slot]||D().slots[st.slot];
-      const {v,auto}=ctx.fixed?{v:slot.variants.find(x=>x.id===ctx.fixed)||slot.variants[0],auto:null}:pickVariant(st.slot,slot,date,flags);
-      out.push({slot:st.slot,slotDef:slot,variant:v.id,auto});
-      v.items.forEach((x,j)=>push(x,i+'.'+j));
-      out.push({slotEnd:true});
-    }else push(st,i);
-  });
-  return{steps:out,hidden,flags,dp};
-}
-
-/* ---------- render ---------- */
-function render(){
-  document.documentElement.dataset.mode=(view.tab==='today'&&view.mode==='pm')?'night':'day';
-  const app=document.getElementById('app'),tabs=document.getElementById('tabs');
-  if(!S.data){tabs.hidden=true;app.innerHTML=onboarding();return}
-  tabs.hidden=false;
-  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view.tab&&!view.settings?'page':'false'));
-  const head='<header class="top"><h1>'+esc(D().title||'スキンケア管理')+'</h1><button class="iconbtn" data-act="settings" aria-label="設定">⚙</button></header>';
-  let body='';
-  if(view.settings)body=settings();
-  else body={today,week,jikka,dp:dpView,prod:prodView}[view.tab]();
-  app.innerHTML=head+body;
-  for(const k in timers)paintTimer(k);
-}
-function stepList(r,date,interactive){
-  const done=new Set(((S.log[date]||{})[r.period])||[]);
-  let html='',n=0,inSlot=false;
-  for(const s of r.steps){
-    if(s.slot){
-      inSlot=true;
-      html+='<li style="display:block;border:0;padding:0;background:none"><div class="slotbox"><div class="t">'+esc(s.slotDef.label)+'</div>';
-      if(interactive){html+='<div class="chips">'+s.slotDef.variants.map(v=>'<button class="chip" data-act="slot" data-slot="'+s.slot+'" data-v="'+v.id+'" aria-pressed="'+(v.id===s.variant)+'">'+esc(v.label)+(v.id===s.auto?'<small>おすすめ</small>':'')+'</button>').join('')+'</div>'}
-      else html+='<div class="sub">'+s.slotDef.variants.map(v=>esc(v.label)+'：'+v.items.map(x=>esc(prod(x.p)?.short)+(x.note?'('+esc(x.note)+')':'')).join('→')).join('<br>')+'</div>';
-      html+='<ol class="steps">';
-      if(!interactive){html+='</ol></div></li>';inSlot='skip'}
-      continue;
-    }
-    if(s.slotEnd){if(inSlot!=='skip')html+='</ol></div></li>';inSlot=false;continue}
-    if(inSlot==='skip')continue;
-    n++;
-    const isDone=done.has(s.key);
-    html+='<li class="'+(s.state==='off'?'off ':'')+(isDone?'done':'')+'">'+
-      (interactive?'<button class="chk" data-act="check" data-key="'+esc(s.key)+'" '+(s.state==='off'?'disabled':'')+' aria-label="'+esc(s.label)+'を完了">'+(isDone?'✓':n)+'</button>':'<span class="chk">'+n+'</span>')+
-      '<div class="st"><div class="nm">'+esc(s.label)+'</div>'+(s.sub?'<div class="sub">'+esc(s.sub)+'</div>':'')+
-      s.tags.map(t=>'<span class="tag'+(t[1]?' w':'')+'">'+esc(t[0])+'</span>').join('')+
-      (s.timer&&interactive?'<div class="timer"><button data-act="timer" data-key="'+esc(s.key)+'">'+(timers[s.key]?.run?'止める':'待ち時間を計る')+'</button><output id="t-'+esc(s.key)+'">0:00</output></div>':'')+
-      '</div></li>';
-  }
-  return'<ol class="steps">'+html+'</ol>';
-}
-function countable(r){return r.steps.filter(s=>!s.slot&&!s.slotEnd&&s.state!=='off'&&s.state!=='optional')}
-function today(){
-  const date=view.date,dk=DK[parse(date).getDay()],period=view.mode;
-  const steps=D().routines[period][dk]||[];
-  const r=resolve(steps,date,period);r.period=period;
-  const done=new Set(((S.log[date]||{})[period])||[]);
-  const req=countable(r),got=req.filter(s=>done.has(s.key)).length;
-  const isToday=date===todayKey();
-  let h='<section class="hero"><div class="dow" aria-hidden="true">'+DJ[parse(date).getDay()]+'</div>'+
-    '<div class="datenav"><button data-act="day" data-n="-1" aria-label="前の日">‹</button><span>'+fmtDate(date)+'（'+DJ[parse(date).getDay()]+'）</span><button data-act="day" data-n="1" aria-label="次の日">›</button>'+(isToday?'':'<button class="today" data-act="day" data-n="0">今日</button>')+'</div>'+
-    '<div><div class="seg" role="group" aria-label="朝夜"><button data-act="mode" data-m="am" aria-pressed="'+(period==='am')+'">朝</button><button data-act="mode" data-m="pm" aria-pressed="'+(period==='pm')+'">夜</button></div></div></section>';
-  h+='<div class="label">肌の状態</div><div class="chips">'+D().flags.map(f=>'<button class="chip" data-act="flag" data-f="'+f.id+'" aria-pressed="'+r.flags.has(f.id)+'">'+esc(f.label)+'<small>'+(f.scope==='day'?'この日だけ':'続く')+'</small></button>').join('')+'</div>';
-  if(r.dp.phase==='pause')h+='<div class="banner"><b>ダーマペン後 '+(r.dp.day===0?'当日':r.dp.day+'日目')+'</b>処方薬・攻めの美容液は休止。鎮静と保湿中心。</div>';
-  if(r.dp.phase==='recover')h+='<div class="banner"><b>ダーマペン後の復帰中：'+(r.dp.stage+1)+'段階目</b>'+esc(D().dermapen.stages[r.dp.stage].label)+'まで再開。進めるときはダーマペンのタブで。</div>';
-  h+='<div class="progress"><h2>'+(period==='am'?'朝のケア':'夜のケア')+'</h2><span>'+got+' / '+req.length+'</span></div><div class="bar"><i style="width:'+(req.length?got/req.length*100:0)+'%"></i></div>';
-  h+=stepList(r,date,true);
-  const note=(D().dayNotes?.[period]||{})[dk];if(note)h+='<div class="note">'+esc(note)+'</div>';
-  if(r.hidden.length)h+='<div class="note">休止中で外しているもの：'+esc(r.hidden.join('、'))+'</div>';
-  h+='<div class="label">この日のメモ</div><textarea class="memo" data-act="memo" placeholder="肌の調子、気づいたことなど">'+esc((S.memo||{})[date]||'')+'</textarea>';
-  return h;
-}
-function week(){
-  const dk=view.wday;
-  let h='<div class="label">曜日を選ぶ</div><div class="week">'+[1,2,3,4,5,6,0].map(i=>'<button data-act="wday" data-d="'+DK[i]+'" aria-pressed="'+(DK[i]===dk)+'">'+DJ[i]+'</button>').join('')+'</div>';
-  h+='<div class="cols">';
-  for(const period of['am','pm']){
-    const r=resolve(D().routines[period][dk]||[],'0000-00-00',period);r.period=period;
-    h+='<h4>'+(period==='am'?'朝':'夜')+'</h4>'+stepList(r,'',false);
-    const note=(D().dayNotes?.[period]||{})[dk];if(note)h+='<div class="note">'+esc(note)+'</div>';
-  }
-  h+='</div><div class="card"><h3>基本ルール</h3><ul class="plain">'+D().rules.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>';
-  return h;
-}
-function jikka(){
-  const J=D().jikka;
-  const r=resolve(J.steps,todayKey(),'jk',{slots:{jikkaSerum:J.slot},fixed:view.jikka});r.period='jk';
-  r.steps=r.steps.filter(s=>!s.slot&&!s.slotEnd);
-  let h='<h2 style="margin:8px 0 2px">実家・風呂上がり</h2><div class="label">今日の肌</div><div class="chips">'+J.slot.variants.map(v=>'<button class="chip" data-act="jk" data-v="'+v.id+'" aria-pressed="'+(v.id===view.jikka)+'">'+esc(v.label)+'</button>').join('')+'</div>';
-  h+=stepList(r,'',false)+'<div class="note">'+esc(J.note)+'</div>';
-  return h;
-}
-function dpView(){
-  const cfg=D().dermapen,t=todayKey(),st=dpStatus(t),dates=(S.dp.dates||[]).slice().sort().reverse();
-  let h='<h2 style="margin:8px 0 6px">セルフダーマペン</h2>';
-  if(st.phase==='pause')h+='<div class="banner"><b>'+(st.day===0?'当日':st.day+'日目')+'：休止期間</b>'+(cfg.pauseDays-1-st.day>0?'あと'+(cfg.pauseDays-1-st.day)+'日。':'今日まで。')+'鎮静と保湿中心で過ごす。</div>';
-  const last=dates[0];
-  if(last){const a=addDays(last,cfg.intervalWeeks[0]*7),b=addDays(last,cfg.intervalWeeks[1]*7);
-    h+='<div class="card"><h3>次回の目安</h3>'+fmtDate(a)+'〜'+fmtDate(b)+'（前回 '+fmtDate(last)+'）</div>'}
-  h+='<div class="card"><h3>記録する</h3><input type="date" id="dpdate" value="'+t+'" aria-label="施術日"><button class="btn primary" data-act="dpadd">この日にダーマペンをした</button></div>';
-  if(last){
-    const cur=st.phase==='recover'?st.stage:(st.phase==='pause'?-1:cfg.stages.length);
-    h+='<div class="card"><h3>復帰の順番</h3><div class="sub">肌の状態を優先して1段階ずつ進める。</div>'+cfg.stages.map((s,i)=>'<div class="stage '+(i<cur||cur>=cfg.stages.length?'done':i===cur?'cur':'')+'"><span class="n">'+(i+1)+'</span><span>'+esc(s.label)+'</span></div>').join('');
-    if(st.phase==='recover')h+='<div class="row">'+(st.stage<cfg.stages.length-1?'<button class="btn primary" data-act="dpnext">次の段階へ進める</button>':'<button class="btn primary" data-act="dpnext">通常ルーティンに戻す</button>')+(st.stage>0?'<button class="btn" data-act="dpback">1段階戻す</button>':'')+'</div>';
-    if(st.phase==='pause')h+='<div class="sub" style="margin-top:6px">休止期間が終わると1段階目から自動で始まります。</div>';
-    if(st.phase==='none')h+='<div class="sub" style="margin-top:6px">通常ルーティンに戻っています。</div>';
-    h+='</div>';
-  }
-  const paused=[...new Set(cfg.stages.flatMap(s=>s.products))].map(id=>prod(id)?.short).filter(Boolean);
-  h+='<div class="card"><h3>当日〜2日目に休むもの</h3><div class="sub">'+esc(paused.join('、'))+'</div></div>';
-  h+='<div class="card"><h3>守ること</h3><ul class="plain warnlist">'+cfg.cautions.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul></div>';
-  if(dates.length)h+='<div class="card"><h3>記録</h3><table>'+dates.map(d=>'<tr><td>'+fmtDate(d)+'（'+d.slice(0,4)+'）</td><td style="text-align:right"><button class="btn sm danger" data-act="dpdel" data-d="'+d+'">削除</button></td></tr>').join('')+'</table></div>';
-  return h;
-}
-function checkIngredients(name,txt){
-  const t=(txt||'').toLowerCase(),out=[];
-  const has=a=>a.some(w=>t.includes(w.toLowerCase()));
-  if(has(['レチノール','レチナール','レチニル','レチノイン','ビタミンa','retinol','retinal','retinyl','hydroxypinacolone','ヒドロキシピナコロン'])) out.push(['ビタミンA系を含みます。処方薬と重ねる前に必ず重複を確認してください。',1]);
-  if(has(['ナイアシンアミド','niacinamide'])) out.push(['ナイアシンアミド配合。夜はDW-EGF／乾燥さん／PD3と重なります。',1]);
-  if(has(['サリチル酸','グリコール酸','乳酸','マンデル酸','グルコノラクトン','salicylic','glycolic','lactic acid','mandelic','pha','aha','bha'])) out.push(['酸（AHA/BHA/PHA）系を含む可能性。刺激と処方薬との併用に注意。',1]);
-  if(has(['アスコルビン酸','アスコルビル','ascorb'])) out.push(['ビタミンC系を含みます（メラノCC・PDRN-VCと役割が近い）。',0]);
-  if(has(['オリゴペプチド-1','ポリペプチド-1','egf','fgf','成長因子'])) out.push(['成長因子系を含みます（Klairs EGF・4GF・KOPHERと役割が近い）。',0]);
-  if(has(['香料','リナロール','リモネン','シトロネロール','ゲラニオール','油','fragrance','linalool','limonene'])) out.push(['香料・精油系の可能性。処方薬直後の夜には入れないのが無難です。',0]);
-  const rm=Object.values(D().products).filter(p=>p.status==='removed'&&name&&(p.name.includes(name)||name.includes(p.short.split(' ')[0])));
-  if(rm.length)out.unshift(['削除済み・再追加しない製品と名前が近いです：'+rm.map(p=>p.name).join('、'),1]);
-  if(!txt)out.push(['全成分を入れると重複チェックができます。',0]);
-  return out;
-}
-function prodView(){
-  const ps=Object.entries(D().products);
-  const act=ps.filter(([,p])=>p.status==='active').length;
-  let h='<h2 style="margin:8px 0 2px">製品</h2><div class="sub">使用中 '+act+'品／休止中 '+ps.filter(([,p])=>p.status==='paused').length+'品</div>';
-  for(const c of CATS){
-    const list=ps.filter(([,p])=>p.cat===c&&p.status!=='removed');if(!list.length)continue;
-    h+='<div class="label">'+esc(c)+'</div>';
-    for(const[id,p]of list){
-      h+='<details class="prod"><summary><span><span class="pname">'+esc(p.name)+'</span><br><span class="sub">'+esc(p.use||'ルーティン未配置')+'</span></span>'+(p.status==='paused'?'<span class="badge paused">休止中</span>':p.added?'<span class="badge new">追加</span>':'')+'</summary><div class="body">'+
-        (p.tags||[]).map(t=>'<span class="tag'+(t==='retinoid'?' w':'')+'">'+esc(TAGJ[t]||t)+'</span>').join('')+(p.tags?.length?'\n':'')+esc(p.desc)+
-        (p.checks?'\n'+p.checks.map(x=>'・'+esc(x[0])).join('\n'):'')+
-        officialHtml(p)+explainHtml(p.ing,p.cat)+(p.ing?'<details><summary class="sub">全成分を見る</summary><div class="sub">'+esc(p.ing)+'</div></details>':'')+
-        '<div class="row">'+(p.cat!=='処方薬'?'<button class="btn sm" data-act="pedit" data-id="'+id+'">全成分・公式を入力</button>':'')+(p.cat==='処方薬'?'<span class="sub">量・頻度・休止は処方指示どおり。アプリでは変更しません。</span>':
-        (p.status==='active'?'<button class="btn sm" data-act="pstat" data-id="'+id+'" data-s="paused">休止する</button>':'<button class="btn sm" data-act="pstat" data-id="'+id+'" data-s="active">再開する</button>')+
-        '<button class="btn sm danger" data-act="pstat" data-id="'+id+'" data-s="removed">削除</button>')+'</div></div></details>';
-    }
-  }
-  const rem=ps.filter(([,p])=>p.status==='removed');
-  if(rem.length)h+='<div class="label">削除済み（再追加しない）</div><div class="card sub">'+rem.map(([,p])=>esc(p.name)).join('<br>')+'</div>';
-  const ed=!!view.np.id;
-  h+='<div class="card" id="addcard"><h3>'+(ed?'製品の情報を編集':'製品を追加')+'</h3><div class="sub">'+(ed?'全成分と公式の情報を入れると、成分からの説明と公式の情報を分けて表示します。':'登録時に全成分から重複・刺激をチェックします。ルーティンへの配置はチャットで相談して決めます。')+'</div>'+
-    ocrBox()+
-    '<label>製品名<input type="text" id="np-name" value="'+esc(view.np.name)+'"></label><label>カテゴリ<select id="np-cat">'+CATS.map(c=>'<option'+(c===view.np.cat?' selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
-    '<label>全成分（任意）<textarea class="f" id="np-ing" rows="4">'+esc(view.np.ing)+'</textarea></label><div id="np-res"></div>'+
-    '<div id="np-ex">'+explainHtml(view.np.ing,view.np.cat)+'</div>'+
-    '<div class="offbox"><div class="label" style="margin-top:0">公式の情報（任意）</div><div class="sub">メーカー公式サイトで確認した説明を入れると、成分からの推定と分けて表示します。</div><div class="row"><button class="btn sm" data-act="osearch">公式情報を調べる</button></div>'+
-    '<label>公式の説明<textarea class="f" id="np-off" rows="3" placeholder="公式サイトの製品説明を要約して入力">'+esc(view.np.official||'')+'</textarea></label><label>公式ページのURL<input type="text" id="np-url" inputmode="url" placeholder="https://" value="'+esc(view.np.officialUrl||'')+'"></label></div>'+
-    (ed?'<div class="row"><button class="btn" data-act="npcheck">成分をチェック</button><button class="btn primary" data-act="npsave">保存する</button><button class="btn" data-act="npcancel">やめる</button></div></div>':
-    '<div class="row"><button class="btn" data-act="npcheck">成分をチェック</button><button class="btn primary" data-act="npadd">追加する</button></div></div>');
-  return h;
-}
-function settings(){
-  return'<h2 style="margin:8px 0">設定</h2>'+
-  '<div class="card"><h3>データ</h3><div class="sub">データはこの端末の中だけに保存されます（'+esc(D().updated||'')+'版）。</div><div class="row"><button class="btn" data-act="export">バックアップを書き出す</button><label class="btn" for="file" role="button">データファイルを選ぶ</label></div></div>'+
-  '<div class="card"><h3>やり直す</h3><div class="sub">チェック記録・メモ・ダーマペン記録も消えます。</div><div class="row"><button class="btn danger" data-act="reset">すべて消して初期画面に戻す</button></div></div>'+
-  '<div class="row"><button class="btn" data-act="close">戻る</button></div>';
-}
-function onboarding(){
-  return'<div class="empty"><div class="dow" style="font-size:72px">肌</div><h2>スキンケア管理</h2><p class="sub">最初に、Macで作ったデータファイル<br>（skincare-data.json）を読み込みます。<br>データはこの端末の中だけに保存されます。</p>'+
-  '<div class="row" style="justify-content:center"><label class="btn primary" for="file" role="button">データファイルを選ぶ</label></div>'+
-  '<p class="sub" style="margin-top:24px">または、ファイルの中身を貼り付け</p><textarea class="f" id="paste" rows="4" aria-label="データを貼り付け"></textarea><button class="btn" data-act="paste">貼り付けたデータを読み込む</button></div>';
-}
-
-/* ---------- 成分の目印 ---------- */
+const ORDER=[1,2,3,4,5,6,0];
+const PJ={am:'朝',pm:'夜'};
+const CATS=['クレンジング・洗顔','化粧水','美容液','マスク','乳液・クリーム','日焼け止め','医薬品・処方薬','その他'];
+const TAGS={retinoid:'ビタミンA系',acid:'酸（AHA/BHA/PHA）',bpo:'過酸化ベンゾイル',vitc:'ビタミンC',niacinamide:'ナイアシンアミド',fragrance:'香料・精油',exfoliant:'スクラブ・ピーリング'};
 const KW={
   retinoid:['レチノール','レチナール','レチニル','レチノイン','トレチノイン','アダパレン','ヒドロキシピナコロン','retinol','retinal','retinyl','adapalene','tretinoin','hydroxypinacolone'],
   acid:['サリチル酸','グリコール酸','乳酸','マンデル酸','リンゴ酸','グルコノラクトン','ラクトビオン酸','salicylic','glycolic','lactic acid','mandelic','gluconolactone','lactobionic'],
@@ -410,8 +236,176 @@ const KW={
   vitc:['アスコルビン酸','アスコルビル','アスコルビン','ascorb'],
   niacinamide:['ナイアシンアミド','niacinamide'],
   fragrance:['香料','リナロール','リモネン','シトロネロール','ゲラニオール','オイゲノール','ラベンダー油','fragrance','parfum','linalool','limonene'],
+  exfoliant:['スクラブ','ピーリング','パパイン','プロテアーゼ'],
 };
+function blank(){return{ver:1,products:{},routines:{am:{},pm:{}},flags:{},log:{},memo:{},started:false}}
+function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s&&s.products)return s}catch(e){}
+  try{const o=JSON.parse(localStorage.getItem(LS_OLD));if(o&&o.data&&o.data.products){const n=convertMine(o.data,o);try{localStorage.setItem(LS,JSON.stringify(n))}catch(e){}return n}}catch(e){}
+  return blank()}
+/* 旧・個人用アプリのデータを変換 */
+function isMine(o){const d=o&&(o.data&&o.data.products?o.data:o);return!!(d&&d.products&&(d.slots||Object.values(d.products).some(p=>p&&p.short!==undefined)))}
+function convertMine(d,st){
+  const CM={'洗顔':'クレンジング・洗顔','UV':'日焼け止め','処方薬':'医薬品・処方薬'},TM={scrub:'exfoliant'};
+  const n=blank();n.started=true;
+  for(const[id,p]of Object.entries(d.products||{})){if(!p||p.status==='removed')continue;
+    const ing=p.ing||'',at=autoTags(ing),cat=CM[p.cat]||p.cat;
+    const mt=[...new Set((p.tags||[]).map(t=>TM[t]||t).filter(t=>t in TAGS&&!at.includes(t)))];
+    n.products[id]={name:p.name,cat:CATS.includes(cat)?cat:'その他',ing,memo:[p.desc,p.use&&p.use!=='休止中'?'使い方：'+p.use:''].filter(Boolean).join('\n'),official:p.official||'',officialUrl:p.officialUrl||'',tags:at,manualTags:mt,sensitive:(p.irritRank||0)>0,status:p.status==='paused'?'paused':'active'};}
+  const pick=k=>{const sl=(d.slots||{})[k];if(!sl)return[];const df=(sl.auto||[]).find(a=>a[0]==='default');return(sl.variants.find(x=>x.id===(df?df[1]:''))||sl.variants[0]).items};
+  for(const pp of['am','pm'])for(const dk of DK){const out=[];
+    for(const s0 of(((d.routines||{})[pp]||{})[dk]||[]))for(const it of(s0.slot?pick(s0.slot):[s0])){
+      if(it.p){if(n.products[it.p])out.push({id:uid(),p:it.p,...(it.note?{note:it.note}:{})})}
+      else if(it.label)out.push({id:uid(),label:it.label,...(it.timer?{timer:true}:{})})}
+    n.routines[pp][dk]=out}
+  if(st&&st.memo)n.memo={...st.memo};
+  return n;
+}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){toast('保存できませんでした（容量や設定を確認してください）')}}
+let S=load();
+function todayKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function parse(k){const[a,b,c]=k.split('-').map(Number);return new Date(a,b-1,c)}
+function addDays(k,n){const d=parse(k);d.setDate(d.getDate()+n);return todayKey(d)}
+function fmtDate(k){const d=parse(k);return(d.getMonth()+1)+'月'+d.getDate()+'日'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1800)}
+let view={tab:'today',date:todayKey(),mode:new Date().getHours()>=15||new Date().getHours()<4?'pm':'am',wday:DK[new Date().getDay()],wmode:'am',np:null,ocr:null,showTop:!((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true)};
+const timers={};
+
+/* ---------- 成分 ---------- */
 function autoTags(ing){const t=(ing||'').toLowerCase();return Object.keys(KW).filter(k=>KW[k].some(w=>t.includes(w.toLowerCase())))}
+function tagsOf(p){return[...new Set([...(p.tags||[]),...(p.manualTags||[])])]}
+function routineWarnings(steps,period){
+  const ps=steps.map(s=>s.p&&S.products[s.p]).filter(p=>p&&p.status==='active');
+  const cnt=k=>ps.filter(p=>tagsOf(p).includes(k)).length;
+  const out=[];
+  if(cnt('retinoid')>=2)out.push(['w','ビタミンA系が'+cnt('retinoid')+'品重なっています。刺激が出やすいとされる組み合わせです。']);
+  if(cnt('retinoid')&&cnt('acid'))out.push(['w','ビタミンA系と酸（AHA/BHA/PHA）を同じ時間に使っています。刺激が出やすいとされる組み合わせです。']);
+  if(cnt('retinoid')&&cnt('bpo'))out.push(['w','ビタミンA系と過酸化ベンゾイルを同じ時間に使っています。製品・処方の指示を確認してください。']);
+  if(cnt('acid')>=2)out.push(['w','酸（AHA/BHA/PHA）を含む製品が'+cnt('acid')+'品あります。']);
+  if(cnt('exfoliant')&&(cnt('retinoid')||cnt('acid')))out.push(['w','スクラブ・ピーリングと、ビタミンA系または酸を同じ時間に使っています。']);
+  if(cnt('niacinamide')>=3)out.push(['i','ナイアシンアミドを含む製品が'+cnt('niacinamide')+'品あります（問題とは限りませんが、重なりの目安に）。']);
+  if(ps.some(p=>p.cat==='医薬品・処方薬'))out.push(['i','医薬品・処方薬は、医師・薬剤師の指示や添付文書を優先してください。']);
+  if(period==='am'&&ps.length&&!ps.some(p=>p.cat==='日焼け止め'))out.push(['i','朝のルーティンに日焼け止めがありません。']);
+  if(period==='am'&&cnt('retinoid'))out.push(['i','朝にビタミンA系を使っています。製品の使用時間の指示を確認してください。']);
+  if(period==='pm'&&ps.some(p=>p.cat==='日焼け止め'))out.push(['i','夜のルーティンに日焼け止めが入っています。']);
+  return out;
+}
+function warnHtml(ws){return ws.map(w=>'<div class="warnbox '+w[0]+'">'+esc(w[1])+'</div>').join('')}
+
+/* ---------- ルーティン解決 ---------- */
+function stepsFor(period,dk){return(S.routines[period]||{})[dk]||[]}
+function resolve(date,period){
+  const dk=DK[parse(date).getDay()],sens=S.flags.sensitive===date,out=[],hidden=[];
+  for(const st of stepsFor(period,dk)){
+    if(!st.p){out.push({key:st.id,label:st.label,state:'normal',tags:[],timer:st.timer});continue}
+    const p=S.products[st.p];if(!p||p.status==='removed')continue;
+    if(p.status==='paused'){hidden.push(p.name);continue}
+    const it={key:st.id,label:p.name,state:'normal',tags:[],sub:st.note||''};
+    if(sens&&p.sensitive){it.state='optional';it.tags.push(['敏感な日：休む候補',1])}
+    out.push(it);
+  }
+  return{steps:out,hidden,sens,dk};
+}
+
+/* ---------- 画面 ---------- */
+function render(){
+  document.documentElement.dataset.mode=(view.tab==='today'&&view.mode==='pm')?'night':'day';
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view.tab?'page':'false'));
+  const app=document.getElementById('app');
+  const body=view.showTop?welcome(Object.keys(S.products).length>0||!!S.started):({today,week,prod:prodView,set:settings})[view.tab]();
+  app.innerHTML=(body.startsWith('<section class="welcome"')?'':'<header class="top"><h1><button class="linkbtn" data-act="top" aria-label="トップページを見る">スキンケア・ノート</button></h1></header>')+body;
+  const isTop=body.startsWith('<section class="welcome"');
+  document.getElementById('tabs').hidden=isTop;
+  if(isTop)document.documentElement.dataset.mode='day';
+  for(const k in timers)paintTimer(k);
+}
+function today(){
+  if(!Object.keys(S.products).length&&!S.started)return welcome(false);
+  const date=view.date,period=view.mode,r=resolve(date,period);
+  const done=new Set(((S.log[date]||{})[period])||[]);
+  const req=r.steps.filter(s=>s.state==='normal'),got=req.filter(s=>done.has(s.key)).length;
+  let h='<section class="hero"><div class="dow" aria-hidden="true">'+DJ[parse(date).getDay()]+'</div>'+
+    '<div class="datenav"><button data-act="day" data-n="-1" aria-label="前の日">‹</button><span>'+fmtDate(date)+'（'+DJ[parse(date).getDay()]+'）</span><button data-act="day" data-n="1" aria-label="次の日">›</button>'+(date===todayKey()?'':'<button class="today" data-act="day" data-n="0">今日</button>')+'</div>'+
+    '<div><div class="seg" role="group" aria-label="朝夜"><button data-act="mode" data-m="am" aria-pressed="'+(period==='am')+'">朝</button><button data-act="mode" data-m="pm" aria-pressed="'+(period==='pm')+'">夜</button></div></div></section>';
+  h+='<div class="chips"><button class="chip" data-act="sens" aria-pressed="'+r.sens+'">肌が敏感な日<small>この日だけ</small></button></div>';
+  if(r.sens)h+='<div class="sub">「刺激が強め」にした製品を休む候補として表示しています。</div>';
+  h+='<div class="progress"><h2>'+PJ[period]+'のケア</h2><span>'+got+' / '+req.length+'</span></div><div class="bar"><i style="width:'+(req.length?got/req.length*100:0)+'%"></i></div>';
+  if(!r.steps.length)h+='<div class="card"><h3>'+DJ[parse(date).getDay()]+'曜日の'+PJ[period]+'はまだ空です</h3><div class="sub">ルーティンのタブで手順を追加します。</div><div class="row"><button class="btn primary" data-act="goedit">この曜日の'+PJ[period]+'を作る</button></div></div>';
+  else{
+    h+='<ol class="steps">'+r.steps.map((s,i)=>{const d=done.has(s.key);return'<li class="'+(d?'done':'')+'"><button class="chk" data-act="check" data-key="'+esc(s.key)+'" aria-label="'+esc(s.label)+'を完了">'+(d?'✓':i+1)+'</button><div class="st"><div class="nm">'+esc(s.label)+'</div>'+(s.sub?'<div class="sub">'+esc(s.sub)+'</div>':'')+s.tags.map(t=>'<span class="tag'+(t[1]?' w':'')+'">'+esc(t[0])+'</span>').join('')+
+      (s.timer?'<div class="timer"><button data-act="timer" data-key="'+esc(s.key)+'">'+(timers[s.key]?.run?'止める':'待ち時間を計る')+'</button><output id="t-'+esc(s.key)+'">0:00</output></div>':'')+'</div></li>'}).join('')+'</ol>';
+    h+=warnHtml(routineWarnings(stepsFor(period,r.dk),period));
+  }
+  if(r.hidden.length)h+='<div class="note">休止中で外しているもの：'+esc(r.hidden.join('、'))+'</div>';
+  h+='<div class="label">この日のメモ</div><textarea class="memo" data-act="memo" placeholder="肌の調子、気づいたことなど">'+esc(S.memo[date]||'')+'</textarea>';
+  return h;
+}
+function welcome(hasData){
+  return'<section class="welcome"><div class="w-orb" aria-hidden="true"></div>'+
+  '<p class="w-kicker">SKINCARE NOTE</p>'+
+  '<h2 class="w-title">わたしの肌に、<br><em>ちょうどいい</em><br>手順を。</h2>'+
+  '<p class="w-lead">使っている化粧品を登録して、曜日ごとの朝と夜のケアを組み立てる。成分の重なりもそっと知らせてくれる、スキンケアのためのノートです。</p>'+
+  (hasData?'<div class="w-actions"><button class="btn primary" data-act="closetop">今日のケアへ</button></div>':'<div class="w-actions"><button class="btn primary" data-act="start">はじめる</button><button class="btn" data-act="sample">サンプルで試す</button></div>')+
+  '<p class="w-note">ログイン不要 ・ 無料 ・ データはこの端末の中だけ</p>'+
+  '<ol class="w-steps"><li><span class="w-num">01</span><div><b>登録する</b><span>化粧品を、写真から読み取って登録</span></div></li>'+
+  '<li><span class="w-num">02</span><div><b>組み立てる</b><span>曜日ごとに、朝と夜の手順をつくる</span></div></li>'+
+  '<li><span class="w-num">03</span><div><b>続ける</b><span>毎日チェックして、肌のメモを残す</span></div></li></ol></section>';
+}
+function week(){
+  const dk=view.wday,period=view.wmode,steps=stepsFor(period,dk);
+  let h='<h2 style="margin:8px 0 2px">ルーティン</h2><div class="week">'+ORDER.map(i=>'<button data-act="wday" data-d="'+DK[i]+'" aria-pressed="'+(DK[i]===dk)+'">'+DJ[i]+'</button>').join('')+'</div>';
+  h+='<div class="seg" role="group" aria-label="朝夜"><button data-act="wmode" data-m="am" aria-pressed="'+(period==='am')+'">朝</button><button data-act="wmode" data-m="pm" aria-pressed="'+(period==='pm')+'">夜</button></div>';
+  h+='<div class="progress"><h2>'+DJ[DK.indexOf(dk)]+'曜日の'+PJ[period]+'</h2><span>'+steps.length+'手順</span></div>';
+  h+='<ol class="steps">'+steps.map((st,i)=>{const p=st.p&&S.products[st.p];const label=st.p?(p?p.name:'（削除された製品）'):st.label;
+    const sub=st.p?(p&&p.status==='paused'?'休止中（今日の画面には出ません）':''):(st.timer?'待ち時間を計れる手順':'メモの手順');
+    return'<li><span class="chk">'+(i+1)+'</span><div class="st"><div class="nm">'+esc(label)+'</div>'+(sub?'<div class="sub">'+esc(sub)+'</div>':'')+'</div><div class="ed"><button data-act="mv" data-i="'+i+'" data-d="-1" aria-label="上へ" '+(i===0?'disabled':'')+'>↑</button><button data-act="mv" data-i="'+i+'" data-d="1" aria-label="下へ" '+(i===steps.length-1?'disabled':'')+'>↓</button><button data-act="rm" data-i="'+i+'" aria-label="削除">×</button></div></li>'}).join('')+'</ol>';
+  if(!steps.length)h+='<div class="sub" style="margin:6px 0">まだ手順がありません。</div>';
+  h+='<div class="row"><button class="btn primary" data-act="addstep">手順を追加</button><button class="btn" data-act="copy">この'+PJ[period]+'を他の曜日にコピー</button></div>';
+  h+=warnHtml(routineWarnings(steps,period));
+  h+='<div class="card" style="margin-top:14px"><h3>1週間の一覧</h3><table><tr><th>曜日</th><th>朝</th><th>夜</th></tr>'+ORDER.map(i=>'<tr><td>'+DJ[i]+'</td>'+['am','pm'].map(pp=>'<td>'+stepsFor(pp,DK[i]).length+'手順'+(routineWarnings(stepsFor(pp,DK[i]),pp).some(w=>w[0]==='w')?' <span class="tag w">注意</span>':'')+'</td>').join('')+'</tr>').join('')+'</table></div>';
+  return h;
+}
+function usedIn(id){const r=[];for(const pp of['am','pm'])for(const i of ORDER)if(stepsFor(pp,DK[i]).some(s=>s.p===id))r.push(DJ[i]+PJ[pp]);return r}
+function prodView(){
+  if(view.np)return editForm();
+  const ps=Object.entries(S.products).filter(([,p])=>p.status!=='removed');
+  let h='<h2 style="margin:8px 0 2px">製品</h2><div class="sub">使用中 '+ps.filter(([,p])=>p.status==='active').length+'品／休止中 '+ps.filter(([,p])=>p.status==='paused').length+'品</div><div class="row"><button class="btn primary" data-act="newp">製品を追加</button></div>';
+  for(const c of CATS){
+    const list=ps.filter(([,p])=>p.cat===c);if(!list.length)continue;
+    h+='<div class="label">'+esc(c)+'</div>';
+    for(const[id,p]of list){const u=usedIn(id);
+      h+='<details class="prod"><summary><span><span class="pname">'+esc(p.name)+'</span><br><span class="sub">'+(u.length?esc(u.join('・')):'ルーティン未使用')+'</span></span>'+(p.status==='paused'?'<span class="badge paused">休止中</span>':'')+'</summary><div class="body">'+
+        tagsOf(p).map(t=>'<span class="tag'+(t==='retinoid'||t==='acid'||t==='bpo'?' w':'')+'">'+esc(TAGS[t]||t)+'</span>').join('')+(p.sensitive?'<span class="tag w">刺激が強め</span>':'')+
+        (p.memo?'\n'+esc(p.memo):'')+officialHtml(p)+explainHtml(p.ing,p.cat)+(p.ing?'<details><summary class="sub">全成分を見る</summary><div class="sub">'+esc(p.ing)+'</div></details>':'')+
+        '<div class="row"><button class="btn sm" data-act="editp" data-id="'+id+'">編集</button>'+(p.status==='active'?'<button class="btn sm" data-act="pstat" data-id="'+id+'" data-s="paused">休止する</button>':'<button class="btn sm" data-act="pstat" data-id="'+id+'" data-s="active">再開する</button>')+'<button class="btn sm danger" data-act="pstat" data-id="'+id+'" data-s="removed">削除</button></div></div></details>';}
+  }
+  if(!ps.length)h+='<div class="card"><div class="sub">まだ製品がありません。「製品を追加」から登録してください。</div></div>';
+  return h;
+}
+function editForm(){
+  const n=view.np,auto=autoTags(n.ing);
+  let h='<h2 style="margin:8px 0 6px">'+(n.id?'製品を編集':'製品を追加')+'</h2><div class="card">'+ocrBox()+
+    '<label>製品名<input type="text" id="np-name" value="'+esc(n.name)+'"></label><label>種類<select id="np-cat">'+CATS.map(c=>'<option'+(c===n.cat?' selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
+    '<label>全成分（任意）<textarea class="f" id="np-ing" rows="4" placeholder="パッケージの全成分を入れると、成分の重なりをチェックできます">'+esc(n.ing)+'</textarea></label>'+
+    '<div id="np-ex">'+explainHtml(n.ing,n.cat)+'</div>'+
+    '<div class="offbox"><div class="label" style="margin-top:0">公式の情報（任意）</div><div class="sub">メーカー公式サイトで製品説明・全成分を確認して入れておくと、成分からの推定と分けて表示されます。</div><div class="row"><button class="btn sm" data-act="osearch">公式情報を調べる</button></div>'+
+    '<label>公式の説明<textarea class="f" id="np-off" rows="3" placeholder="公式サイトの製品説明を要約して入力">'+esc(n.official||'')+'</textarea></label><label>公式ページのURL<input type="text" id="np-url" inputmode="url" placeholder="https://" value="'+esc(n.officialUrl||'')+'"></label></div>'+
+    '<div class="label">成分の目印</div><div class="sub">全成分から自動で付きます。足りないものはタップで追加できます。</div><div class="chips">'+Object.entries(TAGS).map(([k,v])=>{const on=auto.includes(k)||n.manualTags.includes(k);return'<button class="chip" data-act="mtag" data-k="'+k+'" aria-pressed="'+on+'" '+(auto.includes(k)?'disabled title="全成分から自動"':'')+'>'+esc(v)+(auto.includes(k)?'<small>自動</small>':'')+'</button>'}).join('')+'</div>'+
+    '<div class="chips"><button class="chip" data-act="sensp" aria-pressed="'+!!n.sensitive+'">刺激が強め<small>敏感な日は休む候補</small></button></div>'+
+    '<label>メモ（任意）<textarea class="f" id="np-memo" rows="2" placeholder="使い方、使用期限など">'+esc(n.memo)+'</textarea></label>'+
+    (n.cat==='医薬品・処方薬'?'<div class="warnbox i">医薬品・処方薬の量・頻度は、医師・薬剤師の指示や添付文書を優先してください。</div>':'')+
+    '<div class="row"><button class="btn primary" data-act="savep">保存する</button><button class="btn" data-act="cancelp">やめる</button></div></div>';
+  return h;
+}
+function settings(){
+  return'<h2 style="margin:8px 0">設定</h2>'+
+  '<div class="card"><h3>バックアップ</h3><div class="sub">データはこの端末の中だけに保存されます。機種変更の前や、ときどき書き出しておくと安心です。</div><div class="row"><button class="btn" data-act="export">バックアップを書き出す</button><label class="btn" for="file" role="button">バックアップから戻す</label></div></div>'+
+  '<div class="card"><h3>トップページ</h3><div class="sub">アプリ名をタップしても開けます。</div><div class="row"><button class="btn" data-act="top">トップページを見る</button></div></div>'+
+  '<div class="card"><h3>やり直す</h3><div class="sub">製品・ルーティン・チェック記録・メモをすべて消します。</div><div class="row"><button class="btn danger" data-act="reset">すべて消す</button></div></div>'+
+  '<p class="disc">成分の目印と注意表示は、全成分の文字から機械的に判定した目安です。医療的な判断ではありません。肌トラブルがあるときや医薬品については、医師・薬剤師に相談してください。写真の読み取りは端末内で行い、写真やデータを外部に送信しません。</p>';
+}
+
 /* ---------- 成分の説明（全成分からの推定） ---------- */
 const XCAT={
  base:'ベース',moist:'保湿',emol:'油分・保護',barrier:'バリア',calm:'肌荒れ防止・整肌',bright:'くすみ・透明感ケア',firm:'ハリ・エイジングケア',
@@ -632,7 +626,7 @@ function officialHtml(p){
   return'<div class="explain off"><div class="ex-h">公式の情報<span class="tag">自分で確認して入力</span></div>'+(p.official?'<p>'+esc(p.official)+'</p>':'')+(p.officialUrl?'<p><a href="'+esc(p.officialUrl)+'" target="_blank" rel="noopener">公式ページを開く</a></p>':'')+'</div>';
 }
 
-/* ---------- 写真から読み取り（端末内でOCR） ---------- */
+/* ---------- 写真から読み取り ---------- */
 const OCR_BASE=new URL('vendor/ocr/',location.href).href;
 let ocrWorker=null,ocrBusy=false;
 function ocrBox(){
@@ -694,68 +688,95 @@ async function runOcr(files){
 }
 document.getElementById('ocrfile').addEventListener('change',e=>{const fs=[...(e.target.files||[])];e.target.value='';if(fs.length)runOcr(fs)});
 
-/* ---------- import / export ---------- */
-function applyData(obj,keepState=true){
-  if(!obj||!((obj.products&&obj.routines)||(obj.data&&obj.data.products)))throw new Error('スキンケア管理のデータではありません');
-  if(obj.data&&obj.data.products){S=obj}else{
-    const old=S.data;S.data=obj;
-    if(old&&keepState){for(const[id,p]of Object.entries(old.products||{})){if(p.added&&!obj.products[id])obj.products[id]=p;else if(obj.products[id])for(const k of['ing','official','officialUrl'])if(p[k]&&!obj.products[id][k])obj.products[id][k]=p[k]}}
-  }
-  save();render();toast('データを読み込みました');
+/* ---------- ダイアログ ---------- */
+const dlg=document.getElementById('dlg');
+function openAddStep(){
+  const ps=Object.entries(S.products).filter(([,p])=>p.status!=='removed');
+  dlg.innerHTML='<h3 style="margin:0 0 6px">'+DJ[DK.indexOf(view.wday)]+'曜日の'+PJ[view.wmode]+'に追加</h3><div class="list-pick">'+
+    (ps.length?CATS.map(c=>{const l=ps.filter(([,p])=>p.cat===c);return l.length?'<div class="label">'+esc(c)+'</div>'+l.map(([id,p])=>'<button data-act="pick" data-id="'+id+'">'+esc(p.name)+(p.status==='paused'?'（休止中）':'')+'</button>').join(''):''}).join(''):'<div class="sub">製品がまだありません。</div>')+
+    '<div class="label">製品以外の手順</div><input type="text" id="free" placeholder="例：ぬるま湯で洗う"><div class="row"><button class="btn sm" data-act="pickfree">この手順を追加</button><button class="btn sm" data-act="pickwait">「よく乾かす（待ち時間）」を追加</button></div></div>'+
+    '<div class="row"><button class="btn" data-act="dclose">閉じる</button></div>';
+  dlg.showModal();
 }
-async function importText(txt){try{txt=String(txt||'').replace(/^\uFEFF/,'').trim();if(!txt)throw new Error('ファイルが空です');const o=JSON.parse(txt);applyData(o)}catch(e){alert('読み込めませんでした：'+e.message)}}
-document.getElementById('file').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{importText(r.result);e.target.value=''};r.onerror=()=>alert('ファイルを開けませんでした');r.readAsText(f,'utf-8')});
-function exportAll(){
-  const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='skincare-backup-'+todayKey()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+function openCopy(){
+  dlg.innerHTML='<h3 style="margin:0 0 6px">'+DJ[DK.indexOf(view.wday)]+'曜日の'+PJ[view.wmode]+'をコピー</h3><div class="sub">選んだ曜日の'+PJ[view.wmode]+'を上書きします。</div><div class="chips">'+ORDER.filter(i=>DK[i]!==view.wday).map(i=>'<label class="chip"><input type="checkbox" value="'+DK[i]+'" class="cp"> '+DJ[i]+'</label>').join('')+'</div><div class="row"><button class="btn primary" data-act="docopy">コピーする</button><button class="btn" data-act="dclose">やめる</button></div>';
+  dlg.showModal();
+}
+function addStep(st){const r=(S.routines[view.wmode][view.wday]??=[]);r.push({id:uid(),...st});save();dlg.close();render();toast('追加しました')}
+
+/* ---------- サンプル ---------- */
+function sample(){
+  const P=(name,cat,ing,extra={})=>{const id=uid();S.products[id]={name,cat,ing,memo:'サンプル',tags:autoTags(ing),manualTags:[],sensitive:false,status:'active',...extra};return id};
+  const a=P('サンプル 洗顔フォーム','クレンジング・洗顔','水、グリセリン、ミリスチン酸、水酸化K、ラウリン酸');
+  const b=P('サンプル 化粧水','化粧水','水、BG、グリセリン、ナイアシンアミド、ヒアルロン酸Na');
+  const c=P('サンプル ビタミンC美容液','美容液','水、3-O-エチルアスコルビン酸、BG、トコフェロール');
+  const d=P('サンプル レチノール美容液','美容液','水、スクワラン、レチノール、トコフェロール',{sensitive:true});
+  const e=P('サンプル 保湿クリーム','乳液・クリーム','水、グリセリン、セラミドNP、ワセリン、シア脂');
+  const f=P('サンプル 日焼け止め','日焼け止め','水、メトキシケイヒ酸エチルヘキシル、酸化亜鉛、BG');
+  const am=[{p:a},{p:b},{p:c},{p:e},{p:f}],pm=[{label:'ぬるま湯で洗う'},{p:b},{label:'よく乾かす',timer:true},{p:d},{p:e}],pm2=[{label:'ぬるま湯で洗う'},{p:b},{p:e}];
+  for(const i of ORDER){const k=DK[i];S.routines.am[k]=am.map(x=>({id:uid(),...x}));S.routines.pm[k]=(i%2?pm:pm2).map(x=>({id:uid(),...x}))}
+  S.started=true;save();render();toast('サンプルを入れました（設定から消せます）');
 }
 
-/* ---------- timer ---------- */
+/* ---------- バックアップ ---------- */
+function exportAll(){const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='skincare-note-'+todayKey()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+document.getElementById('file').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{let o=JSON.parse(String(r.result).replace(/^\uFEFF/,''));if(isMine(o))o=convertMine(o.data&&o.data.products?o.data:o,o.data?o:null);if(!o||!o.products||!o.routines)throw new Error('このアプリのバックアップではありません');if(!confirm('今のデータをバックアップの内容で置き換えますか？'))return;S=Object.assign(blank(),o);save();render();toast('戻しました')}catch(err){alert('読み込めませんでした：'+err.message)}e.target.value=''};r.readAsText(f,'utf-8')});
+
+/* ---------- タイマー ---------- */
 function paintTimer(k){const o=document.getElementById('t-'+k);if(!o)return;const t=timers[k];const s=Math.floor(((t.run?Date.now()-t.start:0)+t.acc)/1000);o.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 setInterval(()=>{for(const k in timers)if(timers[k].run)paintTimer(k)},500);
 
-/* ---------- events ---------- */
+/* ---------- 操作 ---------- */
+function readForm(){if(!view.np)return;const g=id=>document.getElementById(id);if(g('np-name'))view.np.name=g('np-name').value;if(g('np-cat'))view.np.cat=g('np-cat').value;if(g('np-ing'))view.np.ing=g('np-ing').value;if(g('np-memo'))view.np.memo=g('np-memo').value;if(g('np-off'))view.np.official=g('np-off').value;if(g('np-url'))view.np.officialUrl=g('np-url').value}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act],[data-tab]');if(!b)return;
-  if(b.dataset.tab){view.tab=b.dataset.tab;view.settings=false;render();window.scrollTo(0,0);return}
+  if(b.dataset.tab){readForm();view.showTop=false;view.tab=b.dataset.tab;render();scrollTo(0,0);return}
   const a=b.dataset.act,date=view.date;
-  if(a==='settings'){view.settings=true;render()}
-  else if(a==='close'){view.settings=false;render()}
-  else if(a==='mode'){view.mode=b.dataset.m;render()}
-  else if(a==='day'){const n=+b.dataset.n;view.date=n===0?todayKey():addDays(view.date,n);render()}
-  else if(a==='flag'){const f=D().flags.find(x=>x.id===b.dataset.f);const on=activeFlags(date).has(f.id);S.flags[f.id]=on?null:date;save();render()}
-  else if(a==='slot'){(S.slotPick[date]??={})[b.dataset.slot]=b.dataset.v;save();render()}
-  else if(a==='check'){const L=(S.log[date]??={});const arr=new Set(L[view.mode]||[]);const k=b.dataset.key;arr.has(k)?arr.delete(k):arr.add(k);L[view.mode]=[...arr];save();render()}
-  else if(a==='timer'){const k=b.dataset.key,t=timers[k]??={run:false,start:0,acc:0};if(t.run){t.acc+=Date.now()-t.start;t.run=false}else{t.acc=0;t.start=Date.now();t.run=true}render()}
-  else if(a==='wday'){view.wday=b.dataset.d;render()}
-  else if(a==='jk'){view.jikka=b.dataset.v;render()}
-  else if(a==='dpadd'){const d=document.getElementById('dpdate').value;if(!d)return;S.dp.dates=[...new Set([...(S.dp.dates||[]),d])];S.dp.progress={for:d,cur:0};save();render();toast('記録しました')}
-  else if(a==='dpdel'){if(!confirm(fmtDate(b.dataset.d)+'の記録を削除しますか？'))return;S.dp.dates=S.dp.dates.filter(x=>x!==b.dataset.d);save();render()}
-  else if(a==='dpnext'||a==='dpback'){const st=dpStatus(todayKey());if(st.phase!=='recover')return;S.dp.progress={for:st.last,cur:st.stage+(a==='dpnext'?1:-1)};save();render()}
-  else if(a==='pstat'){const p=prod(b.dataset.id),s=b.dataset.s;if(s==='removed'&&!confirm(p.name+'を削除しますか？（再追加しない一覧に移ります）'))return;p.status=s;if(s==='paused')p.use='休止中';save();render();toast(s==='active'?'再開しました':s==='paused'?'休止しました':'削除しました')}
-  else if(a==='npcheck'||a==='npadd'){
-    const name=document.getElementById('np-name').value.trim(),cat=document.getElementById('np-cat').value,ing=document.getElementById('np-ing').value.trim();
-    const res=checkIngredients(name,ing);
-    document.getElementById('np-res').innerHTML='<ul class="plain">'+res.map(x=>'<li'+(x[1]?' style="color:var(--warn)"':'')+'>'+esc(x[0])+'</li>').join('')+'</ul>';
-    if(a==='npadd'){if(!name){toast('製品名を入れてください');return}
-      const id='u'+Date.now().toString(36);const off=(view.np.official||'').trim(),url=(view.np.officialUrl||'').trim();D().products[id]={name,short:name,cat,desc:'',ing,official:off,officialUrl:/^https?:\/\//.test(url)?url:'',tags:autoTags(ing),status:'active',irritRank:0,use:'',added:todayKey(),checks:res};view.np={name:'',cat:'美容液',ing:''};view.ocr=null;save();render();toast('追加しました');}
+  switch(a){
+  case'start':view.showTop=false;S.started=true;save();view.tab='prod';view.np={name:'',cat:'化粧水',ing:'',memo:'',manualTags:[],sensitive:false};render();break;
+  case'sample':view.showTop=false;sample();break;
+  case'top':readForm();view.showTop=true;render();scrollTo(0,0);break;
+  case'closetop':view.showTop=false;view.tab='today';render();scrollTo(0,0);break;
+  case'mode':view.mode=b.dataset.m;render();break;
+  case'day':{const n=+b.dataset.n;view.date=n===0?todayKey():addDays(view.date,n);render();break}
+  case'sens':S.flags.sensitive=S.flags.sensitive===date?null:date;save();render();break;
+  case'check':{const L=(S.log[date]??={});const s=new Set(L[view.mode]||[]);const k=b.dataset.key;s.has(k)?s.delete(k):s.add(k);L[view.mode]=[...s];save();render();break}
+  case'timer':{const k=b.dataset.key,t=timers[k]??={run:false,start:0,acc:0};if(t.run){t.acc+=Date.now()-t.start;t.run=false}else{t.acc=0;t.start=Date.now();t.run=true}render();break}
+  case'goedit':view.tab='week';view.wday=DK[parse(date).getDay()];view.wmode=view.mode;render();break;
+  case'wday':view.wday=b.dataset.d;render();break;
+  case'wmode':view.wmode=b.dataset.m;render();break;
+  case'mv':{const r=S.routines[view.wmode][view.wday],i=+b.dataset.i,j=i+ +b.dataset.d;if(j<0||j>=r.length)break;[r[i],r[j]]=[r[j],r[i]];save();render();break}
+  case'rm':{const r=S.routines[view.wmode][view.wday];r.splice(+b.dataset.i,1);save();render();break}
+  case'addstep':openAddStep();break;
+  case'pick':addStep({p:b.dataset.id});break;
+  case'pickfree':{const v=document.getElementById('free').value.trim();if(!v){toast('手順の名前を入れてください');break}addStep({label:v});break}
+  case'pickwait':addStep({label:'よく乾かす',timer:true});break;
+  case'copy':openCopy();break;
+  case'docopy':{const ds=[...dlg.querySelectorAll('.cp:checked')].map(x=>x.value);if(!ds.length){toast('曜日を選んでください');break}const src=stepsFor(view.wmode,view.wday);for(const d of ds)S.routines[view.wmode][d]=src.map(s=>({...s,id:uid()}));save();dlg.close();render();toast(ds.length+'曜日にコピーしました');break}
+  case'dclose':dlg.close();break;
+  case'newp':view.np={name:'',cat:'化粧水',ing:'',memo:'',manualTags:[],sensitive:false};view.ocr=null;render();scrollTo(0,0);break;
+  case'editp':{const p=S.products[b.dataset.id];view.np={id:b.dataset.id,name:p.name,cat:p.cat,ing:p.ing||'',memo:p.memo||'',official:p.official||'',officialUrl:p.officialUrl||'',manualTags:[...(p.manualTags||[])],sensitive:!!p.sensitive};view.ocr=null;render();scrollTo(0,0);break}
+  case'mtag':{readForm();const k=b.dataset.k,m=view.np.manualTags;m.includes(k)?m.splice(m.indexOf(k),1):m.push(k);render();break}
+  case'sensp':readForm();view.np.sensitive=!view.np.sensitive;render();break;
+  case'savep':{readForm();const n=view.np;if(!n.name.trim()){toast('製品名を入れてください');break}
+    const id=n.id||uid(),old=S.products[id]||{status:'active'};
+    S.products[id]={...old,name:n.name.trim(),cat:n.cat,ing:n.ing.trim(),memo:n.memo.trim(),official:(n.official||'').trim(),officialUrl:/^https?:\/\//.test((n.officialUrl||'').trim())?(n.officialUrl||'').trim():'',tags:autoTags(n.ing),manualTags:n.manualTags,sensitive:n.sensitive};
+    const t=tagsOf(S.products[id]);view.np=null;view.ocr=null;save();render();
+    toast(n.id?'保存しました':'追加しました');
+    if(t.includes('retinoid')||t.includes('acid')||t.includes('bpo'))setTimeout(()=>toast('刺激が出やすいとされる成分を含みます。組み合わせ注意を確認してください'),1900);
+    break}
+  case'osearch':{readForm();const q=(view.np.name||'').trim();if(!q){toast('先に製品名を入れてください');break}window.open('https://www.google.com/search?q='+encodeURIComponent(q+' 公式 全成分'),'_blank','noopener');break}
+  case'cancelp':view.np=null;view.ocr=null;render();break;
+  case'pstat':{const p=S.products[b.dataset.id],s=b.dataset.s;if(s==='removed'){if(!confirm(p.name+'を削除しますか？ルーティンからも外れます。'))break;for(const pp of['am','pm'])for(const k in S.routines[pp])S.routines[pp][k]=S.routines[pp][k].filter(x=>x.p!==b.dataset.id);delete S.products[b.dataset.id]}else p.status=s;save();render();toast(s==='active'?'再開しました':s==='paused'?'休止しました':'削除しました');break}
+  case'ocrname':{readForm();const l=view.ocr.lines[+b.dataset.i];view.np.name=view.np.name?view.np.name+' '+l:l;render();break}
+  case'ocring':{readForm();const t=view.ocr.ing||view.ocr.text.replace(/\n+/g,'');view.np.ing=view.np.ing?view.np.ing+'、'+t:t;render();break}
+  case'ocrclear':readForm();view.ocr=null;render();break;
+  case'export':exportAll();break;
+  case'reset':if(!confirm('すべてのデータを消しますか？元に戻せません。'))break;S=blank();save();view.tab='today';render();break;
   }
-  else if(a==='pedit'){const p=prod(b.dataset.id);view.np={id:b.dataset.id,name:p.name,cat:p.cat,ing:p.ing||'',official:p.official||'',officialUrl:p.officialUrl||''};view.ocr=null;render();document.getElementById('addcard').scrollIntoView({behavior:'smooth'})}
-  else if(a==='npsave'){const p=prod(view.np.id);if(!p)return;const name=view.np.name.trim();if(!name){toast('製品名を入れてください');return}
-    p.name=name;p.cat=view.np.cat;p.ing=(view.np.ing||'').trim();p.official=(view.np.official||'').trim();const u=(view.np.officialUrl||'').trim();p.officialUrl=/^https?:\/\//.test(u)?u:'';
-    if(p.ing){p.checks=checkIngredients(name,p.ing);if(p.added)p.tags=autoTags(p.ing)}view.np={name:'',cat:'美容液',ing:''};view.ocr=null;save();render();toast('保存しました')}
-  else if(a==='npcancel'){view.np={name:'',cat:'美容液',ing:''};view.ocr=null;render()}
-  else if(a==='osearch'){const q=(view.np.name||'').trim();if(!q){toast('先に製品名を入れてください');return}window.open('https://www.google.com/search?q='+encodeURIComponent(q+' 公式 全成分'),'_blank','noopener')}
-  else if(a==='ocrname'){const l=view.ocr.lines[+b.dataset.i];view.np.name=view.np.name?view.np.name+' '+l:l;render()}
-  else if(a==='ocring'){const t=view.ocr.ing||view.ocr.text.replace(/\n+/g,'');view.np.ing=view.np.ing?view.np.ing+'、'+t:t;render();const r=checkIngredients(view.np.name,view.np.ing);document.getElementById('np-res').innerHTML='<ul class="plain">'+r.map(x=>'<li'+(x[1]?' style="color:var(--warn)"':'')+'>'+esc(x[0])+'</li>').join('')+'</ul>'}
-  else if(a==='ocrclear'){view.ocr=null;render()}
-  else if(a==='import'){document.getElementById('file').click()}
-  else if(a==='paste'){importText(document.getElementById('paste').value)}
-  else if(a==='export'){exportAll()}
-  else if(a==='reset'){if(!confirm('すべてのデータを消しますか？元に戻せません。'))return;try{localStorage.removeItem(LS)}catch(e){}S=load();view.settings=false;render()}
 });
-document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){(S.memo??={})[view.date]=e.target.value;save()}const k={'np-name':'name','np-cat':'cat','np-ing':'ing','np-off':'official','np-url':'officialUrl'}[e.target.id];if(e.target.id==='np-ing'){clearTimeout(window._exT);window._exT=setTimeout(()=>{const x=document.getElementById('np-ex');if(x)x.innerHTML=explainHtml(view.np.ing,view.np.cat)},500)}if(k)view.np[k]=e.target.value});
-document.addEventListener('change',e=>{if(e.target.id==='np-cat'){view.np.cat=e.target.value;render()}});
+document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){S.memo[view.date]=e.target.value;save()}if(e.target.id==='np-ing'&&view.np){view.np.ing=e.target.value;clearTimeout(window._exT);window._exT=setTimeout(()=>{const x=document.getElementById('np-ex');if(x)x.innerHTML=explainHtml(view.np.ing,view.np.cat)},500)}});
+document.addEventListener('change',e=>{if(e.target.id==='np-cat'&&view.np){readForm();render()}});
 render();
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
