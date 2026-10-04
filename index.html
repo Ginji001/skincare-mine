@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6db5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="スキンケア">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>スキンケア管理</title>
+<style>
+:root{
+  --sky:#eaf2fb; --paper:#ffffff; --ink:#13283f; --sub:#5a6b7e; --line:#cfdcec;
+  --blue:#2f6db5; --blue-deep:#1d4f8c; --tint:#d7e6f7; --warn:#a4561a; --warn-bg:#fbeee2;
+  --ok:#2f7d5a; --muted:#9aa8b8;
+  --bg:var(--sky); --card:var(--paper); --text:var(--ink);
+}
+:root[data-mode="night"]{
+  --bg:#0f2038; --card:#17304f; --text:#e6eef8; --sub:#a9bcd3; --line:#2b4a70;
+  --tint:#244874; --blue:#8fb8e8; --blue-deep:#b9d4f3; --warn:#f0b07a; --warn-bg:#3a2c22; --muted:#6f86a3; --ok:#7fd1a8;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);height:100%}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic",sans-serif;
+  font-size:16px;line-height:1.6;transition:background .35s,color .35s}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:12px 16px 104px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:6px 0 4px}
+header.top h1{font-size:15px;font-weight:700;margin:0;color:var(--sub)}
+.iconbtn{background:none;border:0;padding:8px;border-radius:10px;color:var(--sub);font-size:20px;line-height:1}
+/* hero */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:end;margin:6px 0 14px}
+.dow{font-size:88px;font-weight:800;line-height:.9;letter-spacing:-2px;color:var(--blue-deep);grid-row:span 2}
+.datenav{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--sub)}
+.datenav button{border:1px solid var(--line);background:var(--card);border-radius:999px;width:32px;height:32px}
+.datenav .today{width:auto;padding:0 10px;font-size:13px}
+.seg{display:inline-flex;background:var(--tint);border-radius:999px;padding:3px;margin-top:6px}
+.seg button{border:0;background:none;padding:7px 18px;border-radius:999px;font-weight:700;color:var(--sub)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(20,40,70,.15)}
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--paper)}
+:root[data-mode="night"] .chip[aria-pressed="true"]{color:#0f2038}
+.chip small{opacity:.75;margin-left:4px;font-size:11px}
+.label{font-size:13px;color:var(--sub);margin:16px 0 4px;font-weight:700}
+/* banner */
+.banner{border-radius:14px;padding:10px 14px;margin:10px 0;font-size:14px;background:var(--warn-bg);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent)}
+.banner b{display:block;font-size:15px}
+/* steps */
+.progress{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 6px}
+.progress h2{margin:0;font-size:18px}
+.progress span{font-size:13px;color:var(--sub)}
+.bar{height:6px;border-radius:6px;background:var(--tint);overflow:hidden;margin-bottom:10px}
+.bar i{display:block;height:100%;background:var(--blue);transition:width .3s}
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+ol.steps li{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:8px}
+ol.steps li.off{opacity:.55}
+ol.steps li.done .nm{text-decoration:line-through;text-decoration-color:var(--muted)}
+.chk{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--blue);background:transparent;display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--blue)}
+li.done .chk{background:var(--blue);color:var(--card)}
+li.off .chk{border-style:dashed;border-color:var(--muted);color:var(--muted)}
+.st{flex:1;min-width:0}
+.nm{font-weight:700;font-size:16.5px}
+.sub{font-size:13px;color:var(--sub)}
+.tag{display:inline-block;font-size:11.5px;border-radius:6px;padding:1px 7px;margin:3px 4px 0 0;background:var(--tint);color:var(--blue-deep);font-weight:700}
+.tag.w{background:var(--warn-bg);color:var(--warn)}
+.slotbox{background:var(--card);border:1px dashed var(--blue);border-radius:16px;padding:10px 12px 4px;margin-bottom:8px}
+.slotbox .t{font-size:13px;color:var(--sub);font-weight:700}
+.slotbox .chips{margin:6px 0}
+.slotbox ol.steps li{border-style:solid;margin-bottom:6px}
+.timer{margin-top:6px;display:flex;gap:8px;align-items:center}
+.timer button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 12px;font-size:13px}
+.timer output{font-variant-numeric:tabular-nums;font-weight:700}
+.note{font-size:13.5px;color:var(--sub);background:var(--card);border-left:4px solid var(--blue);border-radius:8px;padding:8px 12px;margin:8px 0}
+.memo{width:100%;min-height:64px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:10px;resize:vertical}
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.card h3{margin:0 0 4px;font-size:16px}
+details.prod{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+details.prod summary{list-style:none;padding:11px 14px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+details.prod summary::-webkit-details-marker{display:none}
+details.prod .body{padding:0 14px 12px;font-size:14px;white-space:pre-line}
+.pname{font-weight:700;font-size:15px}
+.badge{flex:none;font-size:11.5px;border-radius:6px;padding:2px 8px;font-weight:700}
+.badge.paused{background:var(--warn-bg);color:var(--warn)}
+.badge.new{background:var(--tint);color:var(--blue-deep)}
+.btn{border:1px solid var(--blue);background:var(--card);color:var(--blue-deep);border-radius:12px;padding:9px 14px;font-weight:700}
+.btn.primary{background:var(--blue);color:var(--paper)}
+:root[data-mode="night"] .btn.primary{color:#0f2038}
+.btn.danger{border-color:var(--warn);color:var(--warn)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+input[type=text],input[type=date],select,textarea.f{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:9px 10px;margin:4px 0 10px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:7px 4px;text-align:left;vertical-align:top}
+th{color:var(--sub);font-weight:700;font-size:13px}
+.stage{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.stage:last-child{border-bottom:0}
+.stage .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;border:2px solid var(--line);color:var(--muted)}
+.stage.done .n{background:var(--blue);border-color:var(--blue);color:var(--card)}
+.stage.cur .n{border-color:var(--blue);color:var(--blue)}
+.stage.cur{font-weight:700}
+.warnlist li{color:var(--warn)}
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav.tabs div{display:flex;max-width:560px;width:100%}
+nav.tabs button{flex:1;border:0;background:none;padding:9px 0 10px;font-size:12px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button .ic{font-size:19px;line-height:1.1}
+nav.tabs button[aria-current="page"]{color:var(--blue-deep);font-weight:700}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0 12px}
+.week button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 0;font-weight:700}
+.week button[aria-pressed="true"]{background:var(--blue);color:var(--paper);border-color:var(--blue)}
+.cols h4{margin:12px 0 4px;font-size:15px}
+.plain{margin:0;padding-left:1.4em}
+.plain li{margin:2px 0}
+.empty{text-align:center;padding:40px 10px}
+.empty h2{font-size:22px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+.toast.on{opacity:.95}
+.muted{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<nav class="tabs" id="tabs" hidden><div>
+  <button data-tab="today"><span class="ic">◐</span>今日</button>
+  <button data-tab="week"><span class="ic">▦</span>週間</button>
+  <button data-tab="jikka"><span class="ic">⌂</span>実家</button>
+  <button data-tab="dp"><span class="ic">✳</span>ダーマペン</button>
+  <button data-tab="prod"><span class="ic">≡</span>製品</button>
+</div></nav>
+<div class="toast" id="toast" role="status"></div>
+<input type="file" id="file" accept="application/json,.json" hidden>
+<script>
+'use strict';
+const LS='skincare-mine-v1';
+const DK=['sun','mon','tue','wed','thu','fri','sat'];
+const DJ=['日','月','火','水','木','金','土'];
+const TAGJ={niacinamide:'ナイアシンアミド',fragrance:'香り成分',retinoid:'ビタミンA系',growth:'成長因子系',pdrn:'PDRN',vitc:'ビタミンC',scrub:'スクラブ',rx:'処方薬'};
+const CATS=['洗顔','化粧水','美容液','マスク','乳液・クリーム','UV','処方薬','その他'];
+let S=load();
+let view={tab:'today',date:todayKey(),mode:defaultMode(),wday:DK[new Date().getDay()],jikka:'normal',showRemoved:false,settings:false};
+const timers={};
+
+function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s)return s}catch(e){}return{data:null,flags:{},slotPick:{},log:{},memo:{},dp:{dates:[],progress:null}}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){toast('保存できませんでした')}}
+function todayKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function parse(k){const[a,b,c]=k.split('-').map(Number);return new Date(a,b-1,c)}
+function addDays(k,n){const d=parse(k);d.setDate(d.getDate()+n);return todayKey(d)}
+function diffDays(a,b){return Math.round((parse(b)-parse(a))/864e5)}
+function defaultMode(){const h=new Date().getHours();return(h>=15||h<4)?'pm':'am'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1800)}
+function fmtDate(k){const d=parse(k);return(d.getMonth()+1)+'月'+d.getDate()+'日'}
+const D=()=>S.data;
+const prod=id=>D().products[id];
+
+/* ---------- state logic ---------- */
+function activeFlags(date){
+  const out=new Set();
+  for(const f of D().flags){const v=S.flags[f.id];if(!v)continue;
+    if(f.scope==='day'){if(v===date)out.add(f.id)}else if(v<=date)out.add(f.id)}
+  return out;
+}
+function dpStatus(date){
+  const dates=(S.dp.dates||[]).filter(d=>d<=date).sort();
+  if(!dates.length)return{phase:'none'};
+  const last=dates[dates.length-1],day=diffDays(last,date),cfg=D().dermapen;
+  if(day<cfg.pauseDays)return{phase:'pause',day,last};
+  const pr=S.dp.progress&&S.dp.progress.for===last?S.dp.progress.cur:0;
+  if(pr>=cfg.stages.length)return{phase:'none',last};
+  return{phase:'recover',stage:pr,last,day};
+}
+function dpBlocked(pid,st){
+  const stages=D().dermapen.stages;
+  const idx=stages.findIndex(s=>s.products.includes(pid));
+  if(idx<0)return null;
+  if(st.phase==='pause')return'ダーマペン後 休止';
+  if(st.phase==='recover'&&idx>st.stage)return'復帰前（'+(idx+1)+'段階目で再開）';
+  return null;
+}
+function pickVariant(slotKey,slot,date,flags){
+  const chosen=(S.slotPick[date]||{})[slotKey];
+  let auto=slot.variants[0].id;
+  if(slot.auto){for(const[c,v]of slot.auto){if(c==='default'||flags.has(c)){auto=v;break}}}
+  const id=chosen||auto;
+  return{v:slot.variants.find(x=>x.id===id)||slot.variants[0],auto};
+}
+function resolve(steps,date,period,ctx={}){
+  const flags=activeFlags(date),dp=dpStatus(date),out=[],hidden=[];
+  const push=(st,i,slotNote)=>{
+    if(!st.p){out.push({key:period+i+':'+st.label,label:st.label,sub:st.note||'',tags:[],state:'normal',timer:st.timer});return}
+    const pr=prod(st.p);if(!pr)return;
+    if(pr.status==='removed')return;
+    if(pr.status==='paused'){hidden.push(pr.short);return}
+    const it={key:period+i+':'+st.p,p:st.p,label:pr.short,sub:[st.note,slotNote].filter(Boolean).join('／'),tags:[],state:st.optional?'optional':'normal'};
+    if(st.optional)it.tags.push(['任意',0]);
+    if(flags.has('irritated')&&pr.irritRank===1){
+      if(pr.replaceWhenSkipped){out.push({key:period+i+':rep',label:pr.replaceWhenSkipped,sub:pr.short+'は刺激週のため休み',tags:[],state:'normal'})}
+      return;
+    }
+    if(flags.has('irritated')&&pr.irritRank>=2){it.tags.push(['刺激週：減らす候補',1]);it.state='optional'}
+    if(st.optionalIf&&st.optionalIf.some(f=>flags.has(f))){it.tags.push([st.optNote||'今日は任意',1]);it.state='optional'}
+    const b=dpBlocked(st.p,dp);if(b){it.tags=[[b,1]];it.state='off'}
+    out.push(it);
+  };
+  steps.forEach((st,i)=>{
+    if(st.slot){
+      const slot=ctx.slots?.[st.slot]||D().slots[st.slot];
+      const {v,auto}=ctx.fixed?{v:slot.variants.find(x=>x.id===ctx.fixed)||slot.variants[0],auto:null}:pickVariant(st.slot,slot,date,flags);
+      out.push({slot:st.slot,slotDef:slot,variant:v.id,auto});
+      v.items.forEach((x,j)=>push(x,i+'.'+j));
+      out.push({slotEnd:true});
+    }else push(st,i);
+  });
+  return{steps:out,hidden,flags,dp};
+}
+
+/* ---------- render ---------- */
+function render(){
+  document.documentElement.dataset.mode=(view.tab==='today'&&view.mode==='pm')?'night':'day';
+  const app=document.getElementById('app'),tabs=document.getElementById('tabs');
+  if(!S.data){tabs.hidden=true;app.innerHTML=onboarding();return}
+  tabs.hidden=false;
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view.tab&&!view.settings?'page':'false'));
+  const head='<header class="top"><h1>'+esc(D().title||'スキンケア管理')+'</h1><button class="iconbtn" data-act="settings" aria-label="設定">⚙</button></header>';
+  let body='';
+  if(view.settings)body=settings();
+  else body={today,week,jikka,dp:dpView,prod:prodView}[view.tab]();
+  app.innerHTML=head+body;
+  for(const k in timers)paintTimer(k);
+}
+function stepList(r,date,interactive){
+  const done=new Set(((S.log[date]||{})[r.period])||[]);
+  let html='',n=0,inSlot=false;
+  for(const s of r.steps){
+    if(s.slot){
+      inSlot=true;
+      html+='<li style="display:block;border:0;padding:0;background:none"><div class="slotbox"><div class="t">'+esc(s.slotDef.label)+'</div>';
+      if(interactive){html+='<div class="chips">'+s.slotDef.variants.map(v=>'<button class="chip" data-act="slot" data-slot="'+s.slot+'" data-v="'+v.id+'" aria-pressed="'+(v.id===s.variant)+'">'+esc(v.label)+(v.id===s.auto?'<small>おすすめ</small>':'')+'</button>').join('')+'</div>'}
+      else html+='<div class="sub">'+s.slotDef.variants.map(v=>esc(v.label)+'：'+v.items.map(x=>esc(prod(x.p)?.short)+(x.note?'('+esc(x.note)+')':'')).join('→')).join('<br>')+'</div>';
+      html+='<ol class="steps">';
+      if(!interactive){html+='</ol></div></li>';inSlot='skip'}
+      continue;
+    }
+    if(s.slotEnd){if(inSlot!=='skip')html+='</ol></div></li>';inSlot=false;continue}
+    if(inSlot==='skip')continue;
+    n++;
+    const isDone=done.has(s.key);
+    html+='<li class="'+(s.state==='off'?'off ':'')+(isDone?'done':'')+'">'+
+      (interactive?'<button class="chk" data-act="check" data-key="'+esc(s.key)+'" '+(s.state==='off'?'disabled':'')+' aria-label="'+esc(s.label)+'を完了">'+(isDone?'✓':n)+'</button>':'<span class="chk">'+n+'</span>')+
+      '<div class="st"><div class="nm">'+esc(s.label)+'</div>'+(s.sub?'<div class="sub">'+esc(s.sub)+'</div>':'')+
+      s.tags.map(t=>'<span class="tag'+(t[1]?' w':'')+'">'+esc(t[0])+'</span>').join('')+
+      (s.timer&&interactive?'<div class="timer"><button data-act="timer" data-key="'+esc(s.key)+'">'+(timers[s.key]?.run?'止める':'待ち時間を計る')+'</button><output id="t-'+esc(s.key)+'">0:00</output></div>':'')+
+      '</div></li>';
+  }
+  return'<ol class="steps">'+html+'</ol>';
+}
+function countable(r){return r.steps.filter(s=>!s.slot&&!s.slotEnd&&s.state!=='off'&&s.state!=='optional')}
+function today(){
+  const date=view.date,dk=DK[parse(date).getDay()],period=view.mode;
+  const steps=D().routines[period][dk]||[];
+  const r=resolve(steps,date,period);r.period=period;
+  const done=new Set(((S.log[date]||{})[period])||[]);
+  const req=countable(r),got=req.filter(s=>done.has(s.key)).length;
+  const isToday=date===todayKey();
+  let h='<section class="hero"><div class="dow" aria-hidden="true">'+DJ[parse(date).getDay()]+'</div>'+
+    '<div class="datenav"><button data-act="day" data-n="-1" aria-label="前の日">‹</button><span>'+fmtDate(date)+'（'+DJ[parse(date).getDay()]+'）</span><button data-act="day" data-n="1" aria-label="次の日">›</button>'+(isToday?'':'<button class="today" data-act="day" data-n="0">今日</button>')+'</div>'+
+    '<div><div class="seg" role="group" aria-label="朝夜"><button data-act="mode" data-m="am" aria-pressed="'+(period==='am')+'">朝</button><button data-act="mode" data-m="pm" aria-pressed="'+(period==='pm')+'">夜</button></div></div></section>';
+  h+='<div class="label">肌の状態</div><div class="chips">'+D().flags.map(f=>'<button class="chip" data-act="flag" data-f="'+f.id+'" aria-pressed="'+r.flags.has(f.id)+'">'+esc(f.label)+'<small>'+(f.scope==='day'?'この日だけ':'続く')+'</small></button>').join('')+'</div>';
+  if(r.dp.phase==='pause')h+='<div class="banner"><b>ダーマペン後 '+(r.dp.day===0?'当日':r.dp.day+'日目')+'</b>処方薬・攻めの美容液は休止。鎮静と保湿中心。</div>';
+  if(r.dp.phase==='recover')h+='<div class="banner"><b>ダーマペン後の復帰中：'+(r.dp.stage+1)+'段階目</b>'+esc(D().dermapen.stages[r.dp.stage].label)+'まで再開。進めるときはダーマペンのタブで。</div>';
+  h+='<div class="progress"><h2>'+(period==='am'?'朝のケア':'夜のケア')+'</h2><span>'+got+' / '+req.length+'</span></div><div class="bar"><i style="width:'+(req.length?got/req.length*100:0)+'%"></i></div>';
+  h+=stepList(r,date,true);
+  const note=(D().dayNotes?.[period]||{})[dk];if(note)h+='<div class="note">'+esc(note)+'</div>';
+  if(r.hidden.length)h+='<div class="note">休止中で外しているもの：'+esc(r.hidden.join('、'))+'</div>';
+  h+='<div class="label">この日のメモ</div><textarea class="memo" data-act="memo" placeholder="肌の調子、気づいたことなど">'+esc((S.memo||{})[date]||'')+'</textarea>';
+  return h;
+}
+function week(){
+  const dk=view.wday;
+  let h='<div class="label">曜日を選ぶ</div><div class="week">'+[1,2,3,4,5,6,0].map(i=>'<button data-act="wday" data-d="'+DK[i]+'" aria-pressed="'+(DK[i]===dk)+'">'+DJ[i]+'</button>').join('')+'</div>';
+  h+='<div class="cols">';
+  for(const period of['am','pm']){
+    const r=resolve(D().routines[period][dk]||[],'0000-00-00',period);r.period=period;
+    h+='<h4>'+(period==='am'?'朝':'夜')+'</h4>'+stepList(r,'',false);
+    const note=(D().dayNotes?.[period]||{})[dk];if(note)h+='<div class="note">'+esc(note)+'</div>';
+  }
+  h+='</div><div class="card"><h3>基本ルール</h3><ul class="plain">'+D().rules.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>';
+  return h;
+}
+function jikka(){
+  const J=D().jikka;
+  const r=resolve(J.steps,todayKey(),'jk',{slots:{jikkaSerum:J.slot},fixed:view.jikka});r.period='jk';
+  r.steps=r.steps.filter(s=>!s.slot&&!s.slotEnd);
+  let h='<h2 style="margin:8px 0 2px">実家・風呂上がり</h2><div class="label">今日の肌</div><div class="chips">'+J.slot.variants.map(v=>'<button class="chip" data-act="jk" data-v="'+v.id+'" aria-pressed="'+(v.id===view.jikka)+'">'+esc(v.label)+'</button>').join('')+'</div>';
+  h+=stepList(r,'',false)+'<div class="note">'+esc(J.note)+'</div>';
+  return h;
+}
+function dpView(){
+  const cfg=D().dermapen,t=todayKey(),st=dpStatus(t),dates=(S.dp.dates||[]).slice().sort().reverse();
+  let h='<h2 style="margin:8px 0 6px">セルフダーマペン</h2>';
+  if(st.phase==='pause')h+='<div class="banner"><b>'+(st.day===0?'当日':st.day+'日目')+'：休止期間</b>'+(cfg.pauseDays-1-st.day>0?'あと'+(cfg.pauseDays-1-st.day)+'日。':'今日まで。')+'鎮静と保湿中心で過ごす。</div>';
+  const last=dates[0];
+  if(last){const a=addDays(last,cfg.intervalWeeks[0]*7),b=addDays(last,cfg.intervalWeeks[1]*7);
+    h+='<div class="card"><h3>次回の目安</h3>'+fmtDate(a)+'〜'+fmtDate(b)+'（前回 '+fmtDate(last)+'）</div>'}
+  h+='<div class="card"><h3>記録する</h3><input type="date" id="dpdate" value="'+t+'" aria-label="施術日"><button class="btn primary" data-act="dpadd">この日にダーマペンをした</button></div>';
+  if(last){
+    const cur=st.phase==='recover'?st.stage:(st.phase==='pause'?-1:cfg.stages.length);
+    h+='<div class="card"><h3>復帰の順番</h3><div class="sub">肌の状態を優先して1段階ずつ進める。</div>'+cfg.stages.map((s,i)=>'<div class="stage '+(i<cur||cur>=cfg.stages.length?'done':i===cur?'cur':'')+'"><span class="n">'+(i+1)+'</span><span>'+esc(s.label)+'</span></div>').join('');
+    if(st.phase==='recover')h+='<div class="row">'+(st.stage<cfg.stages.length-1?'<button class="btn primary" data-act="dpnext">次の段階へ進める</button>':'<button class="btn primary" data-act="dpnext">通常ルーティンに戻す</button>')+(st.stage>0?'<button class="btn" data-act="dpback">1段階戻す</button>':'')+'</div>';
+    if(st.phase==='pause')h+='<div class="sub" style="margin-top:6px">休止期間が終わると1段階目から自動で始まります。</div>';
+    if(st.phase==='none')h+='<div class="sub" style="margin-top:6px">通常ルーティンに戻っています。</div>';
+    h+='</div>';
+  }
+  const paused=[...new Set(cfg.stages.flatMap(s=>s.products))].map(id=>prod(id)?.short).filter(Boolean);
+  h+='<div class="card"><h3>当日〜2日目に休むもの</h3><div class="sub">'+esc(paused.join('、'))+'</div></div>';
+  h+='<div class="card"><h3>守ること</h3><ul class="plain warnlist">'+cfg.cautions.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul></div>';
+  if(dates.length)h+='<div class="card"><h3>記録</h3><table>'+dates.map(d=>'<tr><td>'+fmtDate(d)+'（'+d.slice(0,4)+'）</td><td style="text-align:right"><button class="btn sm danger" data-act="dpdel" data-d="'+d+'">削除</button></td></tr>').join('')+'</table></div>';
+  return h;
+}
+function checkIngredients(name,txt){
+  const t=(txt||'').toLowerCase(),out=[];
+  const has=a=>a.some(w=>t.includes(w.toLowerCase()));
+  if(has(['レチノール','レチナール','レチニル','レチノイン','ビタミンa','retinol','retinal','retinyl','hydroxypinacolone','ヒドロキシピナコロン'])) out.push(['ビタミンA系を含みます。処方薬と重ねる前に必ず重複を確認してください。',1]);
+  if(has(['ナイアシンアミド','niacinamide'])) out.push(['ナイアシンアミド配合。夜はDW-EGF／乾燥さん／PD3と重なります。',1]);
+  if(has(['サリチル酸','グリコール酸','乳酸','マンデル酸','グルコノラクトン','salicylic','glycolic','lactic acid','mandelic','pha','aha','bha'])) out.push(['酸（AHA/BHA/PHA）系を含む可能性。刺激と処方薬との併用に注意。',1]);
+  if(has(['アスコルビン酸','アスコルビル','ascorb'])) out.push(['ビタミンC系を含みます（メラノCC・PDRN-VCと役割が近い）。',0]);
+  if(has(['オリゴペプチド-1','ポリペプチド-1','egf','fgf','成長因子'])) out.push(['成長因子系を含みます（Klairs EGF・4GF・KOPHERと役割が近い）。',0]);
+  if(has(['香料','リナロール','リモネン','シトロネロール','ゲラニオール','油','fragrance','linalool','limonene'])) out.push(['香料・精油系の可能性。処方薬直後の夜には入れないのが無難です。',0]);
+  const rm=Object.values(D().products).filter(p=>p.status==='removed'&&name&&(p.name.includes(name)||name.includes(p.short.split(' ')[0])));
+  if(rm.length)out.unshift(['削除済み・再追加しない製品と名前が近いです：'+rm.map(p=>p.name).join('、'),1]);
+  if(!txt)out.push(['全成分を入れると重複チェックができます。',0]);
+  return out;
+}
+function prodView(){
+  const ps=Object.entries(D().products);
+  const act=ps.filter(([,p])=>p.status==='active').length;
+  let h='<h2 style="margin:8px 0 2px">製品</h2><div class="sub">使用中 '+act+'品／休止中 '+ps.filter(([,p])=>p.status==='paused').length+'品</div>';
+  for(const c of CATS){
+    const list=ps.filter(([,p])=>p.cat===c&&p.status!=='removed');if(!list.length)continue;
+    h+='<div class="label">'+esc(c)+'</div>';
+    for(const[id,p]of list){
+      h+='<details class="prod"><summary><span><span class="pname">'+esc(p.name)+'</span><br><span class="sub">'+esc(p.use||'ルーティン未配置')+'</span></span>'+(p.status==='paused'?'<span class="badge paused">休止中</span>':p.added?'<span class="badge new">追加</span>':'')+'</summary><div class="body">'+
+        (p.tags||[]).map(t=>'<span class="tag'+(t==='retinoid'?' w':'')+'">'+esc(TAGJ[t]||t)+'</span>').join('')+(p.tags?.length?'\n':'')+esc(p.desc)+
+        (p.checks?'\n'+p.checks.map(x=>'・'+esc(x[0])).join('\n'):'')+
+        '<div class="row">'+(p.cat==='処方薬'?'<span class="sub">量・頻度・休止は処方指示どおり。アプリでは変更しません。</span>':
+        (p.status==='active'?'<button class="btn sm" data-act="pstat" data-id="'+id+'" data-s="paused">休止する</button>':'<button class="btn sm" data-act="pstat" data-id="'+id+'" data-s="active">再開する</button>')+
+        '<button class="btn sm danger" data-act="pstat" data-id="'+id+'" data-s="removed">削除</button>')+'</div></div></details>';
+    }
+  }
+  const rem=ps.filter(([,p])=>p.status==='removed');
+  if(rem.length)h+='<div class="label">削除済み（再追加しない）</div><div class="card sub">'+rem.map(([,p])=>esc(p.name)).join('<br>')+'</div>';
+  h+='<div class="card" id="addcard"><h3>製品を追加</h3><div class="sub">登録時に全成分から重複・刺激をチェックします。ルーティンへの配置はチャットで相談して決めます。</div>'+
+    '<label>製品名<input type="text" id="np-name"></label><label>カテゴリ<select id="np-cat">'+CATS.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+
+    '<label>全成分（任意）<textarea class="f" id="np-ing" rows="4"></textarea></label><div id="np-res"></div>'+
+    '<div class="row"><button class="btn" data-act="npcheck">成分をチェック</button><button class="btn primary" data-act="npadd">追加する</button></div></div>';
+  return h;
+}
+function settings(){
+  return'<h2 style="margin:8px 0">設定</h2>'+
+  '<div class="card"><h3>データ</h3><div class="sub">データはこの端末の中だけに保存されます（'+esc(D().updated||'')+'版）。</div><div class="row"><button class="btn" data-act="export">バックアップを書き出す</button><button class="btn" data-act="import">データを読み込む</button></div></div>'+
+  '<div class="card"><h3>やり直す</h3><div class="sub">チェック記録・メモ・ダーマペン記録も消えます。</div><div class="row"><button class="btn danger" data-act="reset">すべて消して初期画面に戻す</button></div></div>'+
+  '<div class="row"><button class="btn" data-act="close">戻る</button></div>';
+}
+function onboarding(){
+  return'<div class="empty"><div class="dow" style="font-size:72px">肌</div><h2>スキンケア管理</h2><p class="sub">最初に、Macで作ったデータファイル<br>（skincare-data.json）を読み込みます。<br>データはこの端末の中だけに保存されます。</p>'+
+  '<div class="row" style="justify-content:center"><button class="btn primary" data-act="import">データを読み込む</button></div>'+
+  '<p class="sub" style="margin-top:24px">または、ファイルの中身を貼り付け</p><textarea class="f" id="paste" rows="4" aria-label="データを貼り付け"></textarea><button class="btn" data-act="paste">貼り付けたデータを読み込む</button></div>';
+}
+
+/* ---------- import / export ---------- */
+function applyData(obj,keepState=true){
+  if(!obj||!obj.products||!obj.routines)throw new Error('形式が違います');
+  if(obj.data&&obj.data.products){S=obj}else{
+    const old=S.data;S.data=obj;
+    if(old&&keepState){for(const[id,p]of Object.entries(old.products||{}))if(p.added&&!obj.products[id])obj.products[id]=p}
+  }
+  save();render();toast('データを読み込みました');
+}
+async function importText(txt){try{const o=JSON.parse(txt);applyData(o.data&&o.data.products?o:o)}catch(e){toast('読み込めません：'+e.message)}}
+document.getElementById('file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;importText(await f.text());e.target.value=''});
+function exportAll(){
+  const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='skincare-backup-'+todayKey()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+
+/* ---------- timer ---------- */
+function paintTimer(k){const o=document.getElementById('t-'+k);if(!o)return;const t=timers[k];const s=Math.floor(((t.run?Date.now()-t.start:0)+t.acc)/1000);o.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+setInterval(()=>{for(const k in timers)if(timers[k].run)paintTimer(k)},500);
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act],[data-tab]');if(!b)return;
+  if(b.dataset.tab){view.tab=b.dataset.tab;view.settings=false;render();window.scrollTo(0,0);return}
+  const a=b.dataset.act,date=view.date;
+  if(a==='settings'){view.settings=true;render()}
+  else if(a==='close'){view.settings=false;render()}
+  else if(a==='mode'){view.mode=b.dataset.m;render()}
+  else if(a==='day'){const n=+b.dataset.n;view.date=n===0?todayKey():addDays(view.date,n);render()}
+  else if(a==='flag'){const f=D().flags.find(x=>x.id===b.dataset.f);const on=activeFlags(date).has(f.id);S.flags[f.id]=on?null:date;save();render()}
+  else if(a==='slot'){(S.slotPick[date]??={})[b.dataset.slot]=b.dataset.v;save();render()}
+  else if(a==='check'){const L=(S.log[date]??={});const arr=new Set(L[view.mode]||[]);const k=b.dataset.key;arr.has(k)?arr.delete(k):arr.add(k);L[view.mode]=[...arr];save();render()}
+  else if(a==='timer'){const k=b.dataset.key,t=timers[k]??={run:false,start:0,acc:0};if(t.run){t.acc+=Date.now()-t.start;t.run=false}else{t.acc=0;t.start=Date.now();t.run=true}render()}
+  else if(a==='wday'){view.wday=b.dataset.d;render()}
+  else if(a==='jk'){view.jikka=b.dataset.v;render()}
+  else if(a==='dpadd'){const d=document.getElementById('dpdate').value;if(!d)return;S.dp.dates=[...new Set([...(S.dp.dates||[]),d])];S.dp.progress={for:d,cur:0};save();render();toast('記録しました')}
+  else if(a==='dpdel'){if(!confirm(fmtDate(b.dataset.d)+'の記録を削除しますか？'))return;S.dp.dates=S.dp.dates.filter(x=>x!==b.dataset.d);save();render()}
+  else if(a==='dpnext'||a==='dpback'){const st=dpStatus(todayKey());if(st.phase!=='recover')return;S.dp.progress={for:st.last,cur:st.stage+(a==='dpnext'?1:-1)};save();render()}
+  else if(a==='pstat'){const p=prod(b.dataset.id),s=b.dataset.s;if(s==='removed'&&!confirm(p.name+'を削除しますか？（再追加しない一覧に移ります）'))return;p.status=s;if(s==='paused')p.use='休止中';save();render();toast(s==='active'?'再開しました':s==='paused'?'休止しました':'削除しました')}
+  else if(a==='npcheck'||a==='npadd'){
+    const name=document.getElementById('np-name').value.trim(),cat=document.getElementById('np-cat').value,ing=document.getElementById('np-ing').value.trim();
+    const res=checkIngredients(name,ing);
+    document.getElementById('np-res').innerHTML='<ul class="plain">'+res.map(x=>'<li'+(x[1]?' style="color:var(--warn)"':'')+'>'+esc(x[0])+'</li>').join('')+'</ul>';
+    if(a==='npadd'){if(!name){toast('製品名を入れてください');return}
+      const id='u'+Date.now().toString(36);D().products[id]={name,short:name,cat,desc:ing?'全成分：'+ing:'',tags:[],status:'active',irritRank:0,use:'',added:todayKey(),checks:res};save();render();toast('追加しました');}
+  }
+  else if(a==='import'){document.getElementById('file').click()}
+  else if(a==='paste'){importText(document.getElementById('paste').value)}
+  else if(a==='export'){exportAll()}
+  else if(a==='reset'){if(!confirm('すべてのデータを消しますか？元に戻せません。'))return;try{localStorage.removeItem(LS)}catch(e){}S=load();view.settings=false;render()}
+});
+document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){(S.memo??={})[view.date]=e.target.value;save()}});
+render();
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
