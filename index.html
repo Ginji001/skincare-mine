@@ -126,6 +126,9 @@ nav.tabs button[aria-current="page"]{color:var(--blue-deep);font-weight:700}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
 .toast.on{opacity:.95}
 .muted{color:var(--muted)}
+.ocrbox{border:1px dashed var(--blue);border-radius:12px;padding:10px 12px;margin:10px 0}
+.ocrbox .chips .chip{font-size:13px;text-align:left}
+.ocrbox textarea{font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -139,6 +142,7 @@ nav.tabs button[aria-current="page"]{color:var(--blue-deep);font-weight:700}
   <button data-tab="prod"><span class="ic">≡</span>製品</button>
 </div></nav>
 <div class="toast" id="toast" role="status"></div>
+<input type="file" id="ocrfile" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-label="製品の写真">
 <input type="file" id="file" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-label="データファイル">
 <script>
 'use strict';
@@ -148,7 +152,7 @@ const DJ=['日','月','火','水','木','金','土'];
 const TAGJ={niacinamide:'ナイアシンアミド',fragrance:'香り成分',retinoid:'ビタミンA系',growth:'成長因子系',pdrn:'PDRN',vitc:'ビタミンC',scrub:'スクラブ',rx:'処方薬'};
 const CATS=['洗顔','化粧水','美容液','マスク','乳液・クリーム','UV','処方薬','その他'];
 let S=load();
-let view={tab:'today',date:todayKey(),mode:defaultMode(),wday:DK[new Date().getDay()],jikka:'normal',showRemoved:false,settings:false};
+let view={tab:'today',date:todayKey(),mode:defaultMode(),wday:DK[new Date().getDay()],jikka:'normal',showRemoved:false,settings:false,np:{name:'',cat:'美容液',ing:''},ocr:null};
 const timers={};
 
 function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s)return s}catch(e){}return{data:null,flags:{},slotPick:{},log:{},memo:{},dp:{dates:[],progress:null}}}
@@ -361,8 +365,9 @@ function prodView(){
   const rem=ps.filter(([,p])=>p.status==='removed');
   if(rem.length)h+='<div class="label">削除済み（再追加しない）</div><div class="card sub">'+rem.map(([,p])=>esc(p.name)).join('<br>')+'</div>';
   h+='<div class="card" id="addcard"><h3>製品を追加</h3><div class="sub">登録時に全成分から重複・刺激をチェックします。ルーティンへの配置はチャットで相談して決めます。</div>'+
-    '<label>製品名<input type="text" id="np-name"></label><label>カテゴリ<select id="np-cat">'+CATS.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+
-    '<label>全成分（任意）<textarea class="f" id="np-ing" rows="4"></textarea></label><div id="np-res"></div>'+
+    ocrBox()+
+    '<label>製品名<input type="text" id="np-name" value="'+esc(view.np.name)+'"></label><label>カテゴリ<select id="np-cat">'+CATS.map(c=>'<option'+(c===view.np.cat?' selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
+    '<label>全成分（任意）<textarea class="f" id="np-ing" rows="4">'+esc(view.np.ing)+'</textarea></label><div id="np-res"></div>'+
     '<div class="row"><button class="btn" data-act="npcheck">成分をチェック</button><button class="btn primary" data-act="npadd">追加する</button></div></div>';
   return h;
 }
@@ -377,6 +382,68 @@ function onboarding(){
   '<div class="row" style="justify-content:center"><label class="btn primary" for="file" role="button">データファイルを選ぶ</label></div>'+
   '<p class="sub" style="margin-top:24px">または、ファイルの中身を貼り付け</p><textarea class="f" id="paste" rows="4" aria-label="データを貼り付け"></textarea><button class="btn" data-act="paste">貼り付けたデータを読み込む</button></div>';
 }
+
+/* ---------- 写真から読み取り（端末内でOCR） ---------- */
+const OCR_BASE=new URL('vendor/ocr/',location.href).href;
+let ocrWorker=null,ocrBusy=false;
+function ocrBox(){
+  const o=view.ocr;
+  let h='<div class="ocrbox"><div class="row" style="margin-top:0;align-items:center"><label class="btn" for="ocrfile" role="button">写真から読み取る</label><span class="sub" id="ocr-st">'+esc(o?.status||'')+'</span></div>'+
+    '<div class="sub" style="margin-top:6px">正面と全成分の面を撮影（複数枚可）。読み取りはこの端末の中だけで行います。結果は必ず確認・修正してください。</div>';
+  if(o&&o.lines&&o.lines.length){
+    h+='<div class="label" style="margin-top:10px">製品名に使う行をタップ</div><div class="chips">'+o.lines.map((l,i)=>'<button class="chip" data-act="ocrname" data-i="'+i+'">'+esc(l)+'</button>').join('')+'</div>';
+    h+='<div class="row"><button class="btn sm" data-act="ocring">'+(o.ing?'全成分の部分を全成分欄に入れる':'読み取った文字を全部、全成分欄に入れる')+'</button><button class="btn sm" data-act="ocrclear">読み取り結果を消す</button></div>';
+    h+='<details style="margin-top:8px"><summary class="sub">読み取った文字をすべて見る</summary><textarea class="f" rows="6" readonly>'+esc(o.text)+'</textarea></details>';
+  }
+  return h+'</div>';
+}
+function setOcrStatus(t){if(view.ocr)view.ocr.status=t;const e=document.getElementById('ocr-st');if(e)e.textContent=t}
+function loadScript(src){return new Promise((ok,ng)=>{if(window.Tesseract)return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ng(new Error('読み取り機能を読み込めません（初回はネット接続が必要）'));document.head.appendChild(s)})}
+async function prepImage(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((ok,ng)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>ng(new Error('画像を開けません'));i.src=url});
+    const max=2200,sc=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+    const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.2)';x.drawImage(img,0,0,c.width,c.height);
+    return c;
+  }finally{URL.revokeObjectURL(url)}
+}
+function cleanOcr(t){
+  const J='[\\u3000-\\u30ff\\u3400-\\u9fff\\uf900-\\ufaff\\uff00-\\uffef]';
+  const re=new RegExp('('+J+')[ \\t]+(?='+J+')','g');
+  return t.split('\n').map(l=>l.replace(re,'$1').replace(re,'$1').replace(/[ \t]+/g,' ').trim()).filter(Boolean).join('\n');
+}
+function extractIngredients(t){
+  const m=t.match(/全成分|成\s*分\s*[:：]|INGREDIENTS?/i);if(!m)return'';
+  let rest=t.slice(m.index+m[0].length).replace(/^[\s:：】\]]+/,'');
+  const stop=rest.search(/(使用方法|使い方|ご使用|ご注意|使用上の注意|注意|内容量|容量|製造販売|販売元|発売元|輸入|原産国|お問い?合わせ|お客様|用法|保管)/);
+  if(stop>0)rest=rest.slice(0,stop);
+  return rest.replace(/\n+/g,'').replace(/[,，]/g,'、').replace(/[\s【\[（(、]+$/,'').trim();
+}
+async function runOcr(files){
+  if(ocrBusy)return;ocrBusy=true;
+  view.ocr={status:'準備中…（初回は読み取り用データを取得します）',lines:[],text:'',ing:''};render();
+  try{
+    await loadScript(OCR_BASE+'tesseract.min.js');
+    if(!ocrWorker){
+      ocrWorker=await Tesseract.createWorker(['jpn','eng'],1,{workerPath:OCR_BASE+'worker.min.js',corePath:OCR_BASE+'core',langPath:OCR_BASE+'lang',
+        logger:m=>{if(m.status==='recognizing text')setOcrStatus('読み取り中 '+Math.round((m.progress||0)*100)+'%');else if(/load|init/.test(m.status||''))setOcrStatus('準備中…')}});
+    }
+    const texts=[];
+    for(let i=0;i<files.length;i++){
+      setOcrStatus((files.length>1?(i+1)+'/'+files.length+'枚目 ':'')+'読み取り中…');
+      const c=await prepImage(files[i]);
+      const r=await ocrWorker.recognize(c);
+      texts.push(cleanOcr(r.data.text||''));
+    }
+    const text=texts.join('\n');
+    const lines=[...new Set(texts.flatMap(t=>t.split('\n')).filter(l=>l.length>=2&&l.length<=40&&!/全成分|成分[:：]/.test(l)))].slice(0,16);
+    view.ocr={status:text?'読み取りました':'文字が見つかりませんでした',lines,text,ing:extractIngredients(text)};
+  }catch(e){view.ocr={status:'読み取れませんでした：'+e.message,lines:[],text:'',ing:''}}
+  ocrBusy=false;render();
+}
+document.getElementById('ocrfile').addEventListener('change',e=>{const fs=[...(e.target.files||[])];e.target.value='';if(fs.length)runOcr(fs)});
 
 /* ---------- import / export ---------- */
 function applyData(obj,keepState=true){
@@ -422,14 +489,18 @@ document.addEventListener('click',e=>{
     const res=checkIngredients(name,ing);
     document.getElementById('np-res').innerHTML='<ul class="plain">'+res.map(x=>'<li'+(x[1]?' style="color:var(--warn)"':'')+'>'+esc(x[0])+'</li>').join('')+'</ul>';
     if(a==='npadd'){if(!name){toast('製品名を入れてください');return}
-      const id='u'+Date.now().toString(36);D().products[id]={name,short:name,cat,desc:ing?'全成分：'+ing:'',tags:[],status:'active',irritRank:0,use:'',added:todayKey(),checks:res};save();render();toast('追加しました');}
+      const id='u'+Date.now().toString(36);D().products[id]={name,short:name,cat,desc:ing?'全成分：'+ing:'',tags:[],status:'active',irritRank:0,use:'',added:todayKey(),checks:res};view.np={name:'',cat:'美容液',ing:''};view.ocr=null;save();render();toast('追加しました');}
   }
+  else if(a==='ocrname'){const l=view.ocr.lines[+b.dataset.i];view.np.name=view.np.name?view.np.name+' '+l:l;render()}
+  else if(a==='ocring'){const t=view.ocr.ing||view.ocr.text.replace(/\n+/g,'');view.np.ing=view.np.ing?view.np.ing+'、'+t:t;render();const r=checkIngredients(view.np.name,view.np.ing);document.getElementById('np-res').innerHTML='<ul class="plain">'+r.map(x=>'<li'+(x[1]?' style="color:var(--warn)"':'')+'>'+esc(x[0])+'</li>').join('')+'</ul>'}
+  else if(a==='ocrclear'){view.ocr=null;render()}
   else if(a==='import'){document.getElementById('file').click()}
   else if(a==='paste'){importText(document.getElementById('paste').value)}
   else if(a==='export'){exportAll()}
   else if(a==='reset'){if(!confirm('すべてのデータを消しますか？元に戻せません。'))return;try{localStorage.removeItem(LS)}catch(e){}S=load();view.settings=false;render()}
 });
-document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){(S.memo??={})[view.date]=e.target.value;save()}});
+document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){(S.memo??={})[view.date]=e.target.value;save()}const k={'np-name':'name','np-cat':'cat','np-ing':'ing'}[e.target.id];if(k)view.np[k]=e.target.value});
+document.addEventListener('change',e=>{if(e.target.id==='np-cat')view.np.cat=e.target.value});
 render();
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
