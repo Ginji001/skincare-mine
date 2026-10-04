@@ -139,7 +139,7 @@ nav.tabs button[aria-current="page"]{color:var(--blue-deep);font-weight:700}
   <button data-tab="prod"><span class="ic">≡</span>製品</button>
 </div></nav>
 <div class="toast" id="toast" role="status"></div>
-<input type="file" id="file" accept="application/json,.json" hidden>
+<input type="file" id="file" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-label="データファイル">
 <script>
 'use strict';
 const LS='skincare-mine-v1';
@@ -368,27 +368,27 @@ function prodView(){
 }
 function settings(){
   return'<h2 style="margin:8px 0">設定</h2>'+
-  '<div class="card"><h3>データ</h3><div class="sub">データはこの端末の中だけに保存されます（'+esc(D().updated||'')+'版）。</div><div class="row"><button class="btn" data-act="export">バックアップを書き出す</button><button class="btn" data-act="import">データを読み込む</button></div></div>'+
+  '<div class="card"><h3>データ</h3><div class="sub">データはこの端末の中だけに保存されます（'+esc(D().updated||'')+'版）。</div><div class="row"><button class="btn" data-act="export">バックアップを書き出す</button><label class="btn" for="file" role="button">データファイルを選ぶ</label></div></div>'+
   '<div class="card"><h3>やり直す</h3><div class="sub">チェック記録・メモ・ダーマペン記録も消えます。</div><div class="row"><button class="btn danger" data-act="reset">すべて消して初期画面に戻す</button></div></div>'+
   '<div class="row"><button class="btn" data-act="close">戻る</button></div>';
 }
 function onboarding(){
   return'<div class="empty"><div class="dow" style="font-size:72px">肌</div><h2>スキンケア管理</h2><p class="sub">最初に、Macで作ったデータファイル<br>（skincare-data.json）を読み込みます。<br>データはこの端末の中だけに保存されます。</p>'+
-  '<div class="row" style="justify-content:center"><button class="btn primary" data-act="import">データを読み込む</button></div>'+
+  '<div class="row" style="justify-content:center"><label class="btn primary" for="file" role="button">データファイルを選ぶ</label></div>'+
   '<p class="sub" style="margin-top:24px">または、ファイルの中身を貼り付け</p><textarea class="f" id="paste" rows="4" aria-label="データを貼り付け"></textarea><button class="btn" data-act="paste">貼り付けたデータを読み込む</button></div>';
 }
 
 /* ---------- import / export ---------- */
 function applyData(obj,keepState=true){
-  if(!obj||!obj.products||!obj.routines)throw new Error('形式が違います');
+  if(!obj||!((obj.products&&obj.routines)||(obj.data&&obj.data.products)))throw new Error('スキンケア管理のデータではありません');
   if(obj.data&&obj.data.products){S=obj}else{
     const old=S.data;S.data=obj;
     if(old&&keepState){for(const[id,p]of Object.entries(old.products||{}))if(p.added&&!obj.products[id])obj.products[id]=p}
   }
   save();render();toast('データを読み込みました');
 }
-async function importText(txt){try{const o=JSON.parse(txt);applyData(o.data&&o.data.products?o:o)}catch(e){toast('読み込めません：'+e.message)}}
-document.getElementById('file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;importText(await f.text());e.target.value=''});
+async function importText(txt){try{txt=String(txt||'').replace(/^\uFEFF/,'').trim();if(!txt)throw new Error('ファイルが空です');const o=JSON.parse(txt);applyData(o)}catch(e){alert('読み込めませんでした：'+e.message)}}
+document.getElementById('file').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{importText(r.result);e.target.value=''};r.onerror=()=>alert('ファイルを開けませんでした');r.readAsText(f,'utf-8')});
 function exportAll(){
   const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='skincare-backup-'+todayKey()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
