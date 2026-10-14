@@ -737,7 +737,7 @@ async function importJsonText(text,opts={}){
   if(!opts.fromCache){try{const c=await caches.open('skn-transfer');await c.put(TRANSFER(),new Response(String(text)))}catch(e){}}
   view.showTop=false;view.tab='today';render();toast('データを読み込みました');return true;
 }
-async function importCode(raw){try{return await importJsonText(await codeToText(extractCode(raw)))}catch(e){alert('読み込めませんでした：'+e.message);return false}}
+async function importCode(raw){const t=String(raw||'').trim();const si=t.indexOf('#sync=');if(si>=0){await setSync(t.slice(si+6));return true}try{return await importJsonText(await codeToText(extractCode(raw)))}catch(e){alert('読み込めませんでした：'+e.message);return false}}
 const SYNC_K='skincare-mine-sync';
 async function syncPull(force){
   let c;try{c=JSON.parse(localStorage.getItem(SYNC_K))}catch(e){}
@@ -755,11 +755,13 @@ async function syncPull(force){
     localStorage.setItem(SYNC_K,JSON.stringify(c));
   }catch(e){console.warn('sync',e)}
 }
+async function setSync(v){v=v.trim();const i=v.indexOf('.');try{localStorage.setItem(SYNC_K,JSON.stringify({key:v.slice(0,i),url:new TextDecoder().decode(b64urlToBytes(v.slice(i+1))),rev:0}))}catch(e){}
+  await syncPull(true);const ok=(()=>{try{return JSON.parse(localStorage.getItem(SYNC_K)).rev>0}catch(e){return false}})();
+  if(ok)toast('自動更新を設定しました');else alert('自動更新を設定しましたが、データを取得できませんでした。通信状態を確認して、アプリを開き直してください。')}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncPull()});
 async function bootImport(){
   if(location.hash.startsWith('#sync=')){const v=location.hash.slice(6);history.replaceState(null,'',location.pathname+location.search);
-    const i=v.indexOf('.');try{localStorage.setItem(SYNC_K,JSON.stringify({key:v.slice(0,i),url:new TextDecoder().decode(b64urlToBytes(v.slice(i+1))),rev:0}))}catch(e){}
-    await syncPull(true);toast('自動更新を設定しました');return}
+    await setSync(v);return}
   if(location.hash.startsWith('#import=')){const h=location.hash;history.replaceState(null,'',location.pathname+location.search);await importCode(h);return}
   if(!Object.keys(S.products).length&&!S.started){try{const c=await caches.open('skn-transfer');const r=await c.match(TRANSFER());if(r){await importJsonText(await r.text(),{silent:true,fromCache:true});await c.delete(TRANSFER())}}catch(e){}}
   await syncPull(true);
