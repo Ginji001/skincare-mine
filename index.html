@@ -329,6 +329,7 @@ function today(){
   let h='<section class="hero"><div class="dow" aria-hidden="true">'+DJ[parse(date).getDay()]+'</div>'+
     '<div class="datenav"><button data-act="day" data-n="-1" aria-label="前の日">‹</button><span>'+fmtDate(date)+'（'+DJ[parse(date).getDay()]+'）</span><button data-act="day" data-n="1" aria-label="次の日">›</button>'+(date===todayKey()?'':'<button class="today" data-act="day" data-n="0">今日</button>')+'</div>'+
     '<div><div class="seg" role="group" aria-label="朝夜"><button data-act="mode" data-m="am" aria-pressed="'+(period==='am')+'">朝</button><button data-act="mode" data-m="pm" aria-pressed="'+(period==='pm')+'">夜</button></div></div></section>';
+  if(!syncOn())h+='<div class="note">このブラウザは自動更新が未設定のため、スマホと内容が違う場合があります。iCloud Drive の「スキンケア管理」フォルダにある「自動更新の設定（初回だけ）.html」を、このブラウザで開くと同期されます。</div>';
   h+='<div class="chips"><button class="chip" data-act="sens" aria-pressed="'+r.sens+'">肌が敏感な日<small>この日だけ</small></button></div>';
   if(r.sens)h+='<div class="sub">「刺激が強め」にした製品を休む候補として表示しています。</div>';
   h+='<div class="progress"><h2>'+PJ[period]+'のケア</h2><span>'+got+' / '+req.length+'</span></div><div class="bar"><i style="width:'+(req.length?got/req.length*100:0)+'%"></i></div>';
@@ -769,6 +770,8 @@ async function setSync(v){v=v.trim();const i=v.indexOf('.');try{localStorage.set
   await syncPull(true);const ok=(()=>{try{return JSON.parse(localStorage.getItem(SYNC_K)).rev>0}catch(e){return false}})();
   if(ok)toast('自動更新を設定しました');else alert('自動更新を設定しましたが、データを取得できませんでした。通信状態を確認して、アプリを開き直してください。')}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncPull()});
+function syncOn(){try{const c=JSON.parse(localStorage.getItem(SYNC_K));return!!(c&&c.url&&c.key)}catch(e){return false}}
+addEventListener('hashchange',()=>{if(/^#(sync|import)=/.test(location.hash))bootImport()});
 async function bootImport(){
   if(location.hash.startsWith('#sync=')){const v=location.hash.slice(6);history.replaceState(null,'',location.pathname+location.search);
     await setSync(v);return}
