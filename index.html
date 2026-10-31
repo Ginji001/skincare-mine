@@ -413,6 +413,7 @@ function settings(){
   return'<h2 style="margin:8px 0">設定</h2>'+
   '<div class="card"><h3>バックアップ</h3><div class="sub">データはこの端末の中だけに保存されます。機種変更の前や、ときどき書き出しておくと安心です。</div><div class="row"><button class="btn" data-act="export">バックアップを書き出す</button><label class="btn" for="file" role="button">バックアップから戻す</label></div></div>'+
   '<div class="card"><h3>データの読み込み</h3><div class="sub">読み込み用のリンクやコードを貼り付けて、データを入れられます。</div><textarea class="f" id="impcode" rows="3" placeholder="読み込み用リンク（…#import=…）またはコード"></textarea><div class="row"><button class="btn" data-act="impcode">読み込む</button></div></div>'+
+  '<div class="card"><h3>記録の同期（チェック・メモ）</h3><div class="sub" id="recst">'+esc(recStatus())+'</div><input class="f" id="wtok" type="password" autocomplete="off" placeholder="github_pat_…"><div class="row"><button class="btn" data-act="wtok">トークンを保存</button></div></div>'+
   '<div class="card"><h3>トップページ</h3><div class="sub">アプリ名をタップしても開けます。</div><div class="row"><button class="btn" data-act="top">トップページを見る</button></div></div>'+
   '<div class="card"><h3>やり直す</h3><div class="sub">製品・ルーティン・チェック記録・メモをすべて消します。</div><div class="row"><button class="btn danger" data-act="reset">すべて消す</button></div></div>'+
   '<p class="disc">成分の目印と注意表示は、全成分の文字から機械的に判定した目安です。医療的な判断ではありません。肌トラブルがあるときや医薬品については、医師・薬剤師に相談してください。写真の読み取りは端末内で行い、写真やデータを外部に送信しません。</p>';
@@ -744,7 +745,7 @@ async function importJsonText(text,opts={}){
   if(typeof isMine==='function'&&isMine(o))o=convertMine(o.data&&o.data.products?o.data:o,o.data?o:null);
   if(!o||!o.products||!o.routines)throw new Error('データの形式が違います');
   if(Object.keys(S.products).length&&!opts.silent&&!confirm('今のデータを、読み込むデータで置き換えますか？'))return false;
-  const old=S;S=Object.assign(blank(),o);if(old&&old.products)for(const[id,p]of Object.entries(old.products))if(p&&!S.products[id]&&p.status!=='removed')S.products[id]=(p.used||p.status==='ended'||['am','pm'].some(pp=>Object.values(((old.routines||{})[pp])||{}).some(l=>(l||[]).some(x=>x&&x.p===id))))?Object.assign({},p,{status:'ended',used:true}):p;if(old&&old.routines){for(const pp of['am','pm'])for(const dk of Object.keys(S.routines[pp]||{})){const ol=(((old.routines||{})[pp]||{})[dk]||[]).slice();for(const it of S.routines[pp][dk]||[]){const i=ol.findIndex(x=>x&&x.p&&x.p===it.p);if(i>=0){it.id=ol[i].id;ol.splice(i,1)}}}}if(old){if(!Object.keys(S.log||{}).length)S.log=old.log||{};if(!Object.keys(S.memo||{}).length)S.memo=old.memo||{}}S.started=true;save();
+  const old=S;S=Object.assign(blank(),o);if(old&&old.products)for(const[id,p]of Object.entries(old.products))if(p&&!S.products[id]&&p.status!=='removed')S.products[id]=(p.used||p.status==='ended'||['am','pm'].some(pp=>Object.values(((old.routines||{})[pp])||{}).some(l=>(l||[]).some(x=>x&&x.p===id))))?Object.assign({},p,{status:'ended',used:true}):p;if(old&&old.routines){for(const pp of['am','pm'])for(const dk of Object.keys(S.routines[pp]||{})){const ol=(((old.routines||{})[pp]||{})[dk]||[]).slice();for(const it of S.routines[pp][dk]||[]){const i=ol.findIndex(x=>x&&x.p&&x.p===it.p);if(i>=0){it.id=ol[i].id;ol.splice(i,1)}}}}if(old){S.lts=Object.assign({},old.lts||{},S.lts||{});if(old.flags&&!(S.flags&&S.flags.sensitive))S.flags=Object.assign({},old.flags,S.flags||{});if(!Object.keys(S.log||{}).length)S.log=old.log||{};if(!Object.keys(S.memo||{}).length)S.memo=old.memo||{}}S.started=true;save();
   if(!opts.fromCache){try{const c=await caches.open('skn-transfer');await c.put(TRANSFER(),new Response(String(text)))}catch(e){}}
   view.showTop=false;view.tab='today';render();toast('データを読み込みました');return true;
 }
@@ -756,7 +757,7 @@ async function syncPull(force){
   if(!force&&c.last&&Date.now()-c.last<30000)return;
   try{
     const r=await fetch(c.url,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});if(!r.ok)return;
-    let env=JSON.parse(await r.text());if(env.files){const fz=Object.values(env.files)[0];env=JSON.parse(fz.content)}c.last=Date.now();
+    let env=JSON.parse(await r.text());if(env.files){const fz=Object.values(env.files)[0];env=JSON.parse(fz.content)}c.last=Date.now();if(env.l)c.lu=env.l;
     if((env.rev||0)>(c.rev||0)){
       const raw=b64urlToBytes(env.d);
       const k=await crypto.subtle.importKey('raw',b64urlToBytes(c.key),'AES-GCM',false,['decrypt']);
@@ -769,15 +770,48 @@ async function syncPull(force){
 async function setSync(v){v=v.trim();const i=v.indexOf('.');try{localStorage.setItem(SYNC_K,JSON.stringify({key:v.slice(0,i),url:new TextDecoder().decode(b64urlToBytes(v.slice(i+1))),rev:0}))}catch(e){}
   await syncPull(true);const ok=(()=>{try{return JSON.parse(localStorage.getItem(SYNC_K)).rev>0}catch(e){return false}})();
   if(ok)toast('自動更新を設定しました');else alert('自動更新を設定しましたが、データを取得できませんでした。通信状態を確認して、アプリを開き直してください。')}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncPull()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncPull().then(()=>recSync(false))});
+setInterval(()=>{const c=syncCfg();if(!document.hidden&&c&&c.wt)recSync(false)},120000);
 function syncOn(){try{const c=JSON.parse(localStorage.getItem(SYNC_K));return!!(c&&c.url&&c.key)}catch(e){return false}}
 addEventListener('hashchange',()=>{if(/^#(sync|import)=/.test(location.hash))bootImport()});
+/* ---------- 端末間の記録同期（チェック・メモ・敏感日） ---------- */
+function bytesToB64u(b){let s='';for(const x of b)s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function syncCfg(){try{return JSON.parse(localStorage.getItem(SYNC_K))||null}catch(e){return null}}
+function syncSet(c){try{localStorage.setItem(SYNC_K,JSON.stringify(c))}catch(e){}}
+async function aesKey(c){return crypto.subtle.importKey('raw',b64urlToBytes(c.key),'AES-GCM',false,['encrypt','decrypt'])}
+async function enc(c,obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await aesKey(c),new TextEncoder().encode(JSON.stringify(obj))));const o=new Uint8Array(12+ct.length);o.set(iv);o.set(ct,12);return bytesToB64u(o)}
+async function dec(c,s){const raw=b64urlToBytes(s);return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:raw.slice(0,12)},await aesKey(c),raw.slice(12))))}
+function stamp(k){(S.lts??={})[k]=Date.now()}
+function recSnap(){const o={log:{},memo:{...(S.memo||{})},sens:S.flags.sensitive||null,lts:{...(S.lts||{})}};for(const[d,v]of Object.entries(S.log||{}))for(const[p,a]of Object.entries(v||{}))o.log[d+'|'+p]=a;return o}
+function recMerge(r){let ch=false;const L=S.lts??={},R=r.lts||{};
+  for(const[k,a]of Object.entries(r.log||{})){const tk='log|'+k,[d,p]=k.split('|'),cur=((S.log[d]||{})[p])||[],lt=L[tk]||0,rt=R[tk]||0;let nv=null;
+    if(rt>lt)nv=a;else if(rt===0&&lt===0){const u=[...new Set([...cur,...a])];if(u.length!==cur.length)nv=u}
+    if(nv){(S.log[d]??={})[p]=[...nv];L[tk]=Math.max(lt,rt);ch=true}}
+  for(const[d,m]of Object.entries(r.memo||{})){const tk='memo|'+d,lt=L[tk]||0,rt=R[tk]||0,cur=S.memo[d]||'';
+    if(m!==cur&&(rt>lt||(rt===0&&lt===0&&String(m).length>cur.length))){S.memo[d]=m;L[tk]=Math.max(lt,rt);ch=true}}
+  if((R.sens||0)>(L.sens||0)){S.flags.sensitive=r.sens||null;L.sens=R.sens;ch=true}
+  return ch}
+let recBusy=false,recTimer=null,recDirty=false;
+async function recSync(push){const c=syncCfg();if(!c||!c.lu||!c.key)return;if(recBusy){if(push)recDirty=true;return}recBusy=true;let first=false,failed=false;
+  try{const h={Accept:'application/vnd.github+json'};if(c.wt&&!c.werr)h.Authorization='Bearer '+c.wt;
+    const g=await fetch(c.lu,{cache:'no-store',headers:h});if(!g.ok)throw new Error('get '+g.status);
+    const gj=await g.json(),f=gj.files&&gj.files['skincare-log.json'],env=f&&f.content?JSON.parse(f.content):{};
+    if(!c.wt&&env.w){try{c.wt=(await dec(c,env.w)).t;syncSet(c);first=true}catch(e){}}
+    let ch=false;if(env.d){try{ch=recMerge(await dec(c,env.d))}catch(e){console.warn('rec dec',e)}}
+    if(ch){save();const a=document.activeElement;if(!(a&&a.dataset&&a.dataset.act==='memo'))render()}
+    if((push||recDirty||first)&&c.wt){recDirty=false;
+      const r=await fetch(c.lu,{method:'PATCH',headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+c.wt,'Content-Type':'application/json'},body:JSON.stringify({files:{'skincare-log.json':{content:JSON.stringify({rev:Date.now(),d:await enc(c,recSnap()),w:await enc(c,{t:c.wt})})}}})});
+      const c2=syncCfg()||c;if(r.status===401||r.status===403){c2.werr=r.status;syncSet(c2);toast('記録の同期に失敗しました（設定のトークンを確認）')}else if(!r.ok){failed=true;recDirty=true}else if(c2.werr){delete c2.werr;syncSet(c2)}}
+  }catch(e){console.warn('rec',e);failed=true;if(push)recDirty=true}
+  finally{recBusy=false;const c3=syncCfg();if(recDirty&&c3&&c3.wt&&!c3.werr){clearTimeout(recTimer);recTimer=setTimeout(()=>recSync(true),failed?15000:1500)}}}
+function recChanged(){recDirty=true;clearTimeout(recTimer);recTimer=setTimeout(()=>recSync(true),1500)}
+function recStatus(){const c=syncCfg();if(!c||!c.key)return'先にこのブラウザで自動更新を設定してください。';if(!c.lu)return'準備中です。アプリを開き直してください。';if(c.werr)return'保存されたトークンが使えません（期限切れなど）。新しいトークンを保存してください。';if(c.wt)return'同期中：どの端末でチェック・メモしても、ほかの端末に反映されます。';return'GitHubで作った書き込み用トークンを、どれか1台で保存すると全端末で同期されます。'}
 async function bootImport(){
   if(location.hash.startsWith('#sync=')){const v=location.hash.slice(6);history.replaceState(null,'',location.pathname+location.search);
     await setSync(v);return}
   if(location.hash.startsWith('#import=')){const h=location.hash;history.replaceState(null,'',location.pathname+location.search);await importCode(h);return}
   if(!Object.keys(S.products).length&&!S.started){try{const c=await caches.open('skn-transfer');const r=await c.match(TRANSFER());if(r){await importJsonText(await r.text(),{silent:true,fromCache:true});await c.delete(TRANSFER())}}catch(e){}}
-  await syncPull(true);
+  await syncPull(true);recSync(false);
 }
 
 /* ---------- タイマー ---------- */
@@ -797,8 +831,8 @@ document.addEventListener('click',e=>{
   case'closetop':view.showTop=false;view.tab='today';render();scrollTo(0,0);break;
   case'mode':view.mode=b.dataset.m;render();break;
   case'day':{const n=+b.dataset.n;view.date=n===0?todayKey():addDays(view.date,n);render();break}
-  case'sens':S.flags.sensitive=S.flags.sensitive===date?null:date;save();render();break;
-  case'check':{const L=(S.log[date]??={});const s=new Set(L[view.mode]||[]);const k=b.dataset.key;s.has(k)?s.delete(k):s.add(k);L[view.mode]=[...s];save();render();break}
+  case'sens':S.flags.sensitive=S.flags.sensitive===date?null:date;stamp('sens');recChanged();save();render();break;
+  case'check':{const L=(S.log[date]??={});const s=new Set(L[view.mode]||[]);const k=b.dataset.key;s.has(k)?s.delete(k):s.add(k);L[view.mode]=[...s];stamp('log|'+date+'|'+view.mode);recChanged();save();render();break}
   case'timer':{const k=b.dataset.key,t=timers[k]??={run:false,start:0,acc:0};if(t.run){t.acc+=Date.now()-t.start;t.run=false}else{t.acc=0;t.start=Date.now();t.run=true}render();break}
   case'goedit':view.tab='week';view.wday=DK[parse(date).getDay()];view.wmode=view.mode;render();break;
   case'wday':view.wday=b.dataset.d;render();break;
@@ -829,12 +863,13 @@ document.addEventListener('click',e=>{
   case'ocrname':{readForm();const l=view.ocr.lines[+b.dataset.i];view.np.name=view.np.name?view.np.name+' '+l:l;render();break}
   case'ocring':{readForm();const t=view.ocr.ing||view.ocr.text.replace(/\n+/g,'');view.np.ing=view.np.ing?view.np.ing+'、'+t:t;render();break}
   case'ocrclear':readForm();view.ocr=null;render();break;
+  case'wtok':{const v=document.getElementById('wtok').value.trim(),c=syncCfg();if(!c||!c.lu){toast('先に自動更新を設定してください');break}if(!/^(github_pat_|ghp_)\w+$/.test(v)){toast('トークンの形式が違います');break}c.wt=v;delete c.werr;syncSet(c);recSync(true).then(()=>{render();toast(syncCfg().werr?'トークンが使えませんでした':'記録の同期を始めました')});break}
   case'impcode':importCode(document.getElementById('impcode').value);break;
   case'export':exportAll();break;
   case'reset':if(!confirm('すべてのデータを消しますか？元に戻せません。'))break;S=blank();save();try{caches.open('skn-transfer').then(c=>c.delete(TRANSFER()))}catch(e){}view.tab='today';render();break;
   }
 });
-document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){S.memo[view.date]=e.target.value;save()}if(e.target.id==='np-ing'&&view.np){view.np.ing=e.target.value;clearTimeout(window._exT);window._exT=setTimeout(()=>{const x=document.getElementById('np-ex');if(x)x.innerHTML=explainHtml(view.np.ing,view.np.cat)},500)}});
+document.addEventListener('input',e=>{if(e.target.dataset.act==='memo'){S.memo[view.date]=e.target.value;stamp('memo|'+view.date);recChanged();save()}if(e.target.id==='np-ing'&&view.np){view.np.ing=e.target.value;clearTimeout(window._exT);window._exT=setTimeout(()=>{const x=document.getElementById('np-ex');if(x)x.innerHTML=explainHtml(view.np.ing,view.np.cat)},500)}});
 document.addEventListener('change',e=>{if(e.target.id==='np-cat'&&view.np){readForm();render()}});
 render();bootImport();
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
